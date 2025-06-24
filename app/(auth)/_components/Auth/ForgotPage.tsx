@@ -6,10 +6,13 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2, Mail } from 'lucide-react'
 import Link from 'next/link'
-
+import { toast } from 'react-toastify'
+import NewPassword from './NewPassword'
 
 export default function ForgotPage() {
     const [isLoading, setIsLoading] = React.useState(false)
+    const [showNewPassword, setShowNewPassword] = React.useState(false)
+
     const form = useForm({
         defaultValues: {
             email: '',
@@ -21,13 +24,23 @@ export default function ForgotPage() {
         setIsLoading(true)
         setTimeout(() => {
             setIsLoading(false)
-        }, 2000)
-        console.log(data)
+            toast.success('Password reset successfully! Check your email.')
+            setTimeout(() => {
+                setShowNewPassword(true)
+            }, 500)
+        }, 200)
+        // console.log(data)
     }
+
+
+    if (showNewPassword) {
+        return <NewPassword />
+    }
+
     return (
         <div className="w-full md:max-w-lg bg-[#1D1F2C] rounded-lg p-8 shadow-lg">
             <h2 className="text-2xl font-semibold text-white mb-2">Forgot your password?</h2>
-            <p className='text-gray-300 mb-8 text-sm'>No worries, just enter your email and we’ll send you a reset link.</p>
+            <p className='text-gray-300 mb-8 text-sm'>No worries, just enter your email and we'll send you a reset link.</p>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <FormField
