@@ -6,7 +6,7 @@ import bottomImg from '@/public/Image/login/bottom.png'
 import middleImg from '@/public/Image/login/middle.png'
 import circleImg from '@/public/Image/login/circle.png'
 import Image from 'next/image'
-import LoginAuth from '../_components/Login/LoginAuth'
+import LoginAuth from '../_components/Auth/LoginAuth'
 
 export default function LoginPage() {
 
