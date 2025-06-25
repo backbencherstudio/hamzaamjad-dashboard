@@ -1,0 +1,83 @@
+[
+    {
+      "id": 1,
+      "title": "The Future of Tech",
+      "hostName": "John Doe",
+      "time": "1 hr 30 min",
+      "date": "2025-01-01",
+      "image": ""
+    },
+    {
+      "id": 2,
+      "title": "Mindset Mastery",
+      "hostName": "Emily Smith",
+      "time": "45 min",
+      "date": "2025-01-08",
+      "image": ""
+    },
+    {
+      "id": 3,
+      "title": "Startup Stories",
+      "hostName": "Carlos Rivera",
+      "time": "1 hr 5 min",
+      "date": "2025-02-15",
+      "image": ""
+    },
+    {
+      "id": 4,
+      "title": "Design Unfolded",
+      "hostName": "Aisha Khan",
+      "time": "30 min",
+      "date": "2025-03-10",
+      "image": ""
+    },
+    {
+      "id": 5,
+      "title": "AI & Ethics",
+      "hostName": "Liam Nguyen",
+      "time": "1 hr 10 min",
+      "date": "2025-03-20",
+      "image": ""
+    },
+    {
+      "id": 6,
+      "title": "Fitness & Focus",
+      "hostName": "Mia Chen",
+      "time": "55 min",
+      "date": "2025-04-02",
+      "image": ""
+    },
+    {
+      "id": 7,
+      "title": "Crypto Weekly",
+      "hostName": "David Lee",
+      "time": "1 hr 20 min",
+      "date": "2025-04-18",
+      "image": ""
+    },
+    {
+      "id": 8,
+      "title": "Travel Tales",
+      "hostName": "Sofia Patel",
+      "time": "50 min",
+      "date": "2025-05-05",
+      "image": ""
+    },
+    {
+      "id": 9,
+      "title": "Science Simplified",
+      "hostName": "Noah Wilson",
+      "time": "40 min",
+      "date": "2025-05-25",
+      "image": ""
+    },
+    {
+      "id": 10,
+      "title": "The Book Nook",
+      "hostName": "Isabella Martinez",
+      "time": "1 hr",
+      "date": "2025-06-10",
+      "image": ""
+    }
+  ]
+  
