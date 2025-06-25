@@ -62,7 +62,7 @@ export default function ReusableTable({
     return (
         <div className={` ${className}`}>
             {/* Table */}
-            <div className="overflow-x-auto rounded-lg border border-[#23293D] text-white">
+            <div className="overflow-x-auto rounded-t-lg border border-[#23293D] text-white">
                 <table className="min-w-full divide-y divide-[#23293D]  w-full">
                     <thead className="bg-[#23293D]">
                         <tr>

@@ -121,7 +121,7 @@ export default function NewMemberships() {
                 data={data}
                 columns={columns}
                 actions={actions}
-                className="mt-4"
+                className="mt-4 "
             />
 
         </>

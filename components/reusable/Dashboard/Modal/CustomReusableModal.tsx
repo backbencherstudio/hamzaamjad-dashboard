@@ -32,7 +32,7 @@ export default function CustomReusableModal({
                 ) : (
                     <DialogHeader className={showHeader ? "p-4 pb-0" : "sr-only"}>
                         <div className="flex items-center justify-between">
-                            <DialogTitle className={showHeader ? "text-lg font-semibold" : "sr-only"}>
+                            <DialogTitle className={showHeader ? "text-xl font-semibold" : "sr-only"}>
                                 {title}
                             </DialogTitle>
                         </div>

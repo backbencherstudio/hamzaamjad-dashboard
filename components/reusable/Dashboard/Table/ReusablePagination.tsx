@@ -21,8 +21,8 @@ export default function ReusablePagination({
     onItemsPerPageChange,
     className = ""
 }: ReusablePaginationProps) {
-    const startIndex = (currentPage - 1) * itemsPerPage + 1
-    const endIndex = Math.min(currentPage * itemsPerPage, totalItems)
+    // const startIndex = (currentPage - 1) * itemsPerPage + 1
+    // const endIndex = Math.min(currentPage * itemsPerPage, totalItems)
 
     const handlePrevious = () => {
         if (currentPage > 1) {
@@ -85,12 +85,12 @@ export default function ReusablePagination({
         return pages
     }
 
-    if (totalPages <= 1) {
+    if (totalItems <= 0) {
         return null
     }
 
     return (
-        <div className={`bg-white/50 rounded-b-lg px-4 py-3 sm:px-6 border-b border-r border-l border-gray-300 ${className}`}>
+        <div className={`bg-[#23293D] rounded-b-lg px-4 py-3 sm:px-6 ${className}`}>
             {/* Desktop Layout */}
             <div className="hidden lg:flex items-center justify-between">
                 {/* Items per page selector */}
@@ -98,7 +98,7 @@ export default function ReusablePagination({
                     <select
                         value={itemsPerPage}
                         onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                        className="rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                        className="rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 focus:border-[#3762E4] focus:outline-none focus:ring-1 focus:ring-[#3762E4]"
                     >
                         {itemsPerPageOptions.map((option) => (
                             <option key={option} value={option}>
@@ -106,7 +106,7 @@ export default function ReusablePagination({
                             </option>
                         ))}
                     </select>
-                    <span className="text-sm text-gray-700">showing</span>
+                    <span className="text-sm text-white">showing</span>
                 </div>
 
                 {/* Page numbers */}
@@ -117,9 +117,9 @@ export default function ReusablePagination({
                             onClick={() => typeof page === 'number' && onPageChange(page)}
                             disabled={typeof page !== 'number'}
                             className={`px-3 cursor-pointer py-1 text-sm font-medium rounded-md transition-colors ${page === currentPage
-                                ? 'bg-green-500 text-white shadow-sm'
+                                ? 'bg-[#3762E4] text-white shadow-sm'
                                 : typeof page === 'number'
-                                    ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                                    ? 'text-gray-300 hover:bg-[#3762E4] hover:text-white'
                                     : 'text-gray-400 cursor-default'
                                 }`}
                         >
@@ -161,7 +161,7 @@ export default function ReusablePagination({
                         <select
                             value={itemsPerPage}
                             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                            className="rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                            className="rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 focus:border-[#3762E4] focus:outline-none focus:ring-1 focus:ring-[#3762E4]"
                         >
                             {itemsPerPageOptions.map((option) => (
                                 <option key={option} value={option}>
@@ -169,7 +169,7 @@ export default function ReusablePagination({
                                 </option>
                             ))}
                         </select>
-                        <span className="text-sm text-gray-700">showing</span>
+                        <span className="text-sm text-white">showing</span>
                     </div>
                     <span className="text-sm text-gray-700">
                         Page {currentPage} of {totalPages}
@@ -185,7 +185,7 @@ export default function ReusablePagination({
                                 onClick={() => typeof page === 'number' && onPageChange(page)}
                                 disabled={typeof page !== 'number'}
                                 className={`px-2 py-1 text-sm font-medium rounded-md transition-colors ${page === currentPage
-                                    ? 'bg-green-500 text-white shadow-sm'
+                                    ? 'bg-[#3762E4] text-white shadow-sm'
                                     : typeof page === 'number'
                                         ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                                         : 'text-gray-400 cursor-default'
@@ -228,7 +228,7 @@ export default function ReusablePagination({
                     <select
                         value={itemsPerPage}
                         onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                        className="rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                        className="rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 focus:border-[#3762E4] focus:outline-none focus:ring-1 focus:ring-[#3762E4]"
                     >
                         {itemsPerPageOptions.map((option) => (
                             <option key={option} value={option}>
@@ -236,12 +236,12 @@ export default function ReusablePagination({
                             </option>
                         ))}
                     </select>
-                    <span className="text-sm text-gray-700">showing</span>
+                    <span className="text-sm text-white">showing</span>
                 </div>
 
                 {/* Middle row: Page info */}
                 <div className="text-center">
-                    <span className="text-sm text-gray-700">
+                    <span className="text-sm text-white">
                         Page {currentPage} of {totalPages} ({totalItems} items)
                     </span>
                 </div>
@@ -267,7 +267,7 @@ export default function ReusablePagination({
                                 onClick={() => typeof page === 'number' && onPageChange(page)}
                                 disabled={typeof page !== 'number'}
                                 className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${page === currentPage
-                                    ? 'bg-green-500 text-white shadow-sm'
+                                    ? 'bg-[#3762E4] text-white shadow-sm'
                                     : typeof page === 'number'
                                         ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                                         : 'text-gray-400 cursor-default'
