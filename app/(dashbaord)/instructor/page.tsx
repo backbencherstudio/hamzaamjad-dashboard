@@ -185,7 +185,7 @@ export default function ManageBookings() {
             </div>
 
             {/* Tabs and Search */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div className="flex flex-col gap-4 xl:flex-row justify-between items-center mb-4">
                 {/* Tabs on the left */}
                 <nav className="flex flex-wrap gap-2 sm:gap-6 bg-[#181F2A] rounded-[10px] p-2 shadow-sm border-2 border-[#23293D]" style={{ boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.1)' }}>
                     {tabs.map((tab) => (
@@ -203,9 +203,9 @@ export default function ManageBookings() {
                 </nav>
 
                 {/* Search on the right */}
-                <div className='flex items-center gap-4'>
+                <div className='flex flex-col md:flex-row items-center gap-4'>
                     <button
-                        className="bg-blue-600 cursor-pointer transition-all duration-300 text-sm hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow ml-auto sm:ml-0 mt-4 sm:mt-0"
+                        className="bg-blue-600 cursor-pointer transition-all duration-300 text-sm hover:bg-blue-700 text-white font-semibold py-2 px-4  rounded-lg shadow ml-auto sm:ml-0 mt-4 sm:mt-0"
                         onClick={() => setIsModalOpen(true)}
                     >
                         + Add Instructor
