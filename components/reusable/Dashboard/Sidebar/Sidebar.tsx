@@ -3,24 +3,6 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { IoClose } from 'react-icons/io5';
-// import logo from '@/public/logo/mainLogo.png';
-
-import {
-    HiSearch,
-    HiTruck,
-    HiDocumentText,
-    HiCalendar,
-    HiBell,
-    HiMail,
-    HiUser,
-    HiCurrencyDollar,
-    HiCheckCircle,
-    HiClipboardList,
-    HiCreditCard,
-    HiReceiptTax,
-    HiQuestionMarkCircle,
-    HiHome
-} from 'react-icons/hi';
 import { HiArrowRightOnRectangle } from "react-icons/hi2";
 import { toast } from 'react-toastify';
 import { LayoutGrid, Building2, Truck, Calendar } from 'lucide-react';
@@ -28,44 +10,19 @@ import { LayoutGrid, Building2, Truck, Calendar } from 'lucide-react';
 interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
-    user: {
-        name: string;
-        email: string;
-        role: string;
-        avatar: string;
-    };
+ 
 }
 
-export default function Sidebar({ onClose, user }: SidebarProps) {
+export default function Sidebar({ onClose }: SidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
 
     const menuItems = [
 
-        // Driver
-        { icon: HiSearch, label: 'Book My MOT', href: '/driver/book-my-mot', role: 'driver' },
-        { icon: HiTruck, label: 'My Vehicles', href: '/driver/my-vehicles', role: 'driver' },
-        { icon: HiDocumentText, label: 'MOT Reports', href: '/driver/mot-reports', role: 'driver' },
-        { icon: HiCalendar, label: 'My Bookings', href: '/driver/my-bookings', role: 'driver' },
-        { icon: HiBell, label: 'Notifications', href: '/driver/notifications', role: 'driver' },
-        { icon: HiMail, label: 'Contact Us', href: '/driver/contact-us', role: 'driver' },
-
-
-        // garage
-        { icon: HiUser, label: 'Garage Profile', href: '/garage/garage-profile', role: 'garage' },
-        { icon: HiCurrencyDollar, label: 'Pricing', href: '/garage/pricing', role: 'garage' },
-        { icon: HiCheckCircle, label: 'Availability', href: '/garage/availability', role: 'garage' },
-        { icon: HiClipboardList, label: 'Bookings', href: '/garage/bookings', role: 'garage' },
-        { icon: HiCreditCard, label: 'Payment', href: '/garage/payment', role: 'garage' },
-        { icon: HiReceiptTax, label: 'Invoices', href: '/garage/invoices', role: 'garage' },
-        { icon: HiMail, label: 'Contact Us', href: '/garage/contact-us', role: 'garage' },
-        { icon: HiQuestionMarkCircle, label: 'FAQ', href: '/garage/faq', role: 'garage' },
-
-        // admin
-        { icon: LayoutGrid, label: 'Dashboard', href: '/admin/dashboard', role: 'admin' },
-        { icon: Building2, label: 'Manage Garages', href: '/admin/manage-garages', role: 'admin' },
-        { icon: Truck, label: 'Manage Drivers', href: '/admin/manage-drivers', role: 'admin' },
-        { icon: Calendar, label: 'Manage Bookings', href: '/admin/manage-bookings', role: 'admin' },
+        { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard', role: 'admin' },
+        { icon: Building2, label: 'Manage Garages', href: '/manage-garages', role: 'admin' },
+        { icon: Truck, label: 'Manage Drivers', href: '/manage-drivers', role: 'admin' },
+        { icon: Calendar, label: 'Manage Bookings', href: '/manage-bookings', role: 'admin' },
 
     ];
 
@@ -73,6 +30,13 @@ export default function Sidebar({ onClose, user }: SidebarProps) {
         router.push('/');
         toast.success('Logout successful');
     };
+
+   const user = {
+    name: 'Admin',
+    email: 'admin@gmail.com',
+    role: 'admin',
+   }
+
 
     return (
         <div className="w-64 h-screen bg-white flex flex-col">
@@ -96,9 +60,7 @@ export default function Sidebar({ onClose, user }: SidebarProps) {
                         {menuItems
                             .filter(item => item.role === user.role)
                             .map((item) => {
-                                const isActive = item.href === '/driver/book-my-mot'
-                                    ? pathname.startsWith('/driver/book-my-mot')
-                                    : pathname === item.href;
+                                const isActive = pathname === item.href;
                                 return (
                                     <li key={item.href}>
                                         <Link href={item.href}>
@@ -122,23 +84,7 @@ export default function Sidebar({ onClose, user }: SidebarProps) {
 
             {/* Bottom Section - Always at bottom */}
             <div className="mt-auto">
-                {/* role based alert */}
-                {
-                    user.role === 'garage' && (
-                        <div className="p-2">
-                            <div className="bg-red-500 text-white px-6 py-6 rounded-lg space-y-2" role="alert">
-                                <h1 className="font-bold text-md text-center font-Inter">Account not active</h1>
-                                <p className="text-sm leading-relaxed text-center text-[#EDEDED]">
-                                    To activate your garage subscription and start receiving bookings, please proceed to the payment page.
-                                </p>
-
-                                <button className='bg-white text-red-500 px-2 py-2 rounded-md font-medium hover:bg-gray-50 transition-colors duration-200 w-full cursor-pointer font-Inter text-sm'>
-                                    Activate Account
-                                </button>
-                            </div>
-                        </div>
-                    )
-                }
+               
 
                 {/* Logout button */}
                 <div className="p-4">

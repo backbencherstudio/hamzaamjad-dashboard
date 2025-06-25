@@ -1,6 +1,6 @@
 import React from 'react'
 import { HiMenuAlt2 } from 'react-icons/hi'
-import { Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { Bell, User, LogOut, ChevronDown } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,50 +12,20 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
-export default function Header({ onMenuClick, user }: {
-    onMenuClick: () => void, user: {
-        name: string;
-        email: string;
-        role: string;
-        avatar: string;
-    }
+export default function Header({ onMenuClick }: {
+    onMenuClick: () => void,
 }) {
     const notificationCount = 3
-    const pathname = usePathname();
     const router = useRouter();
-    const getPageTitle = () => {
-        switch (pathname) {
-            // Driver routes
-            case '/driver/book-my-mot':
-                return 'Book My MOT';
-            case '/driver/my-vehicles':
-                return 'My Vehicles';
-            case '/driver/mot-reports':
-                return 'MOT Reports';
-            case '/driver/my-bookings':
-                return 'My Bookings';
-            case '/driver/notifications':
-                return 'Notifications';
-            case '/driver/contact-us':
-                return 'Contact Us';
 
-            // Garage routes
-            case '/garage/garage-profile':
-                return 'Garage Profile';
-            case '/garage/pricing':
-                return 'Pricing';
-
-            default:
-                // Dynamic default based on user role
-                if (pathname.startsWith('/garage')) {
-                    return 'Garage Dashboard';
-                } else {
-                    return 'Driver Dashboard';
-                }
-        }
-    };
+    const user = {
+        name: 'Admin',
+        email: 'admin@gmail.com',
+        role: 'admin',
+        avatar: '/api/placeholder/32/32'
+    }
 
     return (
         <nav className="bg-white">
@@ -67,9 +37,6 @@ export default function Header({ onMenuClick, user }: {
                     >
                         <HiMenuAlt2 className="h-6 w-6" />
                     </button>
-                    {/* <div className="hidden md:block">
-                        <h1 className="text-xl font-semibold text-[#737373]">{getPageTitle()}</h1>
-                    </div> */}
                 </div>
 
                 {/* Right Side - Notifications and User Profile */}
@@ -137,7 +104,7 @@ export default function Header({ onMenuClick, user }: {
                             <DropdownMenuItem className="flex items-center gap-2 cursor-pointer" onClick={() => {
 
                                 // i have three role admin, garage, driver
-                                const profileRoute = user.role === 'admin' ? '/admin/profile' : user.role === 'garage' ? '/garage/profile' : '/driver/profile';
+                                const profileRoute = user.role === 'admin' ? '/profile' : '';
                                 router.push(profileRoute);
                             }}>
                                 <User className="h-4 w-4" />
