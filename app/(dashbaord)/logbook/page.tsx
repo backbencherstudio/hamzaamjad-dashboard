@@ -4,12 +4,14 @@ import ReusableTable from '@/components/reusable/Dashboard/Table/ReuseableTable'
 import ReusablePagination from '@/components/reusable/Dashboard/Table/ReusablePagination'
 import { toast } from 'react-toastify'
 import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 
 export default function LogbookPage() {
     const [data, setData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
+    const router = useRouter();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -54,8 +56,13 @@ export default function LogbookPage() {
         {
             label: 'Action',
             width: '5%',
-            render: () => (
-                <button className="px-4 py-1 bg-[#333541] text-white cursor-pointer hover:bg-[#444654]/80 transition-all duration-300F text-sm rounded-md">Details</button>
+            render: (row) => (
+                <button
+                    className="px-4 py-1 bg-[#333541] text-white cursor-pointer hover:bg-[#444654]/80 transition-all duration-300 text-sm rounded-md"
+                    onClick={() => router.push(`/logbook/details/${row.id}`)}
+                >
+                    Details
+                </button>
             )
         }
     ];
