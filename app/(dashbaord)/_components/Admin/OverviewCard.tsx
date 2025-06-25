@@ -3,15 +3,15 @@ import React from 'react'
 export default function OverviewCard() {
     const data = [
         {
-            title: 'Total Garages',
+            title: 'Total Pilot User',
             value: 0,
         },
         {
-            title: 'Total Drivers',
+            title: 'Total Instructor ',
             value: 0,
         },
         {
-            title: 'Total Bookings',
+            title: 'Total Membership ',
             value: 0,
         }
     ]

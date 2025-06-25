@@ -1,6 +1,7 @@
-import React from 'react'
+"use client"
+import React, { useEffect, useState } from 'react'
 import { HiMenuAlt2 } from 'react-icons/hi'
-import { Bell, User, LogOut, ChevronDown } from 'lucide-react'
+import { User, LogOut, ChevronDown } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,24 +12,35 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
+import greetingTime from "greeting-time";
 import { useRouter } from 'next/navigation';
 
 export default function Header({ onMenuClick }: {
     onMenuClick: () => void,
 }) {
-    const notificationCount = 3
     const router = useRouter();
-
+    const [greeting, setGreeting] = useState<string>("");
     const user = {
-        name: 'Admin',
+        name: 'Ronald Richards',
         email: 'admin@gmail.com',
         role: 'admin',
         avatar: '/api/placeholder/32/32'
     }
 
+    // real time greeting
+    useEffect(() => {
+        const updateGreeting = () => {
+            const greetingText = greetingTime(new Date());
+            setGreeting(greetingText);
+        };
+
+        updateGreeting();
+        const interval = setInterval(updateGreeting, 60000);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
-        <nav className="bg-white">
+        <nav className="bg-[#23293D] shadow-[0px_4px_40px_0px_rgba(0,0,0,0.25)]">
             <div className="px-4 py-3 md:py-4 flex items-center justify-between">
                 <div className="flex items-center">
                     <button
@@ -42,10 +54,10 @@ export default function Header({ onMenuClick }: {
                 {/* Right Side - Notifications and User Profile */}
                 <div className="flex items-center gap-4">
                     {/* Notification Dropdown */}
-                    <DropdownMenu>
+                    {/* <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="relative cursor-pointer select-none border">
-                                <Bell className="h-5 w-5 text-gray-600" />
+                                <Bell className="h-5 w-5 " />
                                 {notificationCount > 0 && (
                                     <Badge
                                         variant="destructive"
@@ -81,19 +93,21 @@ export default function Header({ onMenuClick }: {
                                 View all notifications
                             </DropdownMenuItem>
                         </DropdownMenuContent>
-                    </DropdownMenu>
+                    </DropdownMenu> */}
 
                     {/* User Profile Dropdown */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="flex items-center gap-2 px-2 cursor-pointer select-none">
+                            <Button variant="ghost" className="flex items-center gap-2 px-2 cursor-pointer select-none hover:bg-transparent">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={user.avatar} alt="User Avatar" />
                                     <AvatarFallback className="select-none">{user.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div className="hidden md:flex flex-col items-start select-none">
-                                    <span className="text-sm font-medium text-gray-900 select-none">{user.name}</span>
-                                    <span className="text-xs text-gray-500 select-none capitalize">{user.role}</span>
+                                    <span className="text-xs text-[#3762E4] select-none capitalize">{greeting}</span>
+                                    <span className="text-sm font-medium text-white select-none">{user.name}</span>
+                                    {/* greeting */}
+
                                 </div>
                                 <ChevronDown className="h-4 w-4 text-gray-500" />
                             </Button>

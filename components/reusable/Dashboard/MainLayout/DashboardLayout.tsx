@@ -41,7 +41,7 @@ const DashboardLayout = ({ children }: LayoutProps) => {
                 )}
 
                 {/* Content Area */}
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#ECEFF3] p-4">
+                <main className="flex-1 overflow-x-hidden overflow-y-auto  p-4" style={{ background: 'linear-gradient(180deg, #121A35 0%, #09090B 100%)' }}>
                     {children}
                 </main>
             </div>
