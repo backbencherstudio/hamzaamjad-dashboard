@@ -62,39 +62,39 @@ export default function ReusableTable({
     return (
         <div className={` ${className}`}>
             {/* Table */}
-            <div className="overflow-x-auto rounded-t-lg border border-gray-300">
-                <table className="min-w-full divide-y divide-gray-200  w-full">
-                    <thead className="bg-gray-50">
+            <div className="overflow-x-auto rounded-lg border border-[#23293D] text-white">
+                <table className="min-w-full divide-y divide-[#23293D]  w-full">
+                    <thead className="bg-[#23293D]">
                         <tr>
                             {columns.map((column) => (
                                 <th
                                     key={column.key}
                                     scope="col"
                                     style={{ width: column.width }}
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider overflow-hidden"
+                                    className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider overflow-hidden"
                                 >
                                     {column.label}
                                 </th>
                             ))}
                             {actions && actions.length > 0 && (
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                     Actions
                                 </th>
                             )}
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-[#1D1F2C] divide-y divide-[#23293D]">
                         {tableData.map((row, index) => (
                             <tr
                                 key={index}
-                                className={`capitalize ${onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                                className={`capitalize ${onRowClick ? 'cursor-pointer hover:bg-[#23293D]' : ''}`}
                                 onClick={() => onRowClick?.(row)}
                             >
                                 {columns.map((column) => (
-                                    <td 
-                                        key={column.key} 
+                                    <td
+                                        key={column.key}
                                         style={{ width: column.width }}
-                                        className="px-6 py-4 text-sm text-gray-900 overflow-hidden"
+                                        className="px-6 py-4 text-sm text-white overflow-hidden"
                                     >
                                         <div className="truncate">
                                             {renderCellContent(column, row)}

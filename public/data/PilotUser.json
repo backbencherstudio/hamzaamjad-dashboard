@@ -1,0 +1,148 @@
+[
+    {
+        "id": 1,
+        "name": "Cody Fisher",
+        "currentLicense": "No License",
+        "homeBase": "DAC",
+        "favorites": [
+            "DAC",
+            "INC",
+            "MIA",
+            "DAL",
+            "YVR",
+            "ATL",
+            "ORD"
+        ],
+        "email": "cody.fisher@example.com",
+        "status": "active"
+    },
+    {
+        "id": 2,
+        "name": "Jenny Wilson",
+        "currentLicense": "Class B",
+        "homeBase": "LAX",
+        "favorites": [
+            "LAX",
+            "JFK",
+            "SFO",
+            "SEA",
+            "ORD"
+        ],
+        "email": "jenny.wilson@example.com",
+        "status": "active"
+    },
+    {
+        "id": 3,
+        "name": "Ronald Richards",
+        "currentLicense": "Expired",
+        "homeBase": "JFK",
+        "favorites": [],
+        "email": "ronald.richards@example.com",
+        "status": "inactive"
+    },
+    {
+        "id": 4,
+        "name": "Kristin Watson",
+        "currentLicense": "Class A",
+        "homeBase": "MIA",
+        "favorites": [
+            "MIA",
+            "ORD",
+            "LAX",
+            "YYZ",
+            "SFO"
+        ],
+        "email": "kristin.watson@example.com",
+        "status": "active"
+    },
+    {
+        "id": 5,
+        "name": "Dianne Russell",
+        "currentLicense": "Class C",
+        "homeBase": "SFO",
+        "favorites": [
+            "SFO",
+            "LAS",
+            "PHX",
+            "DEN",
+            "SEA"
+        ],
+        "email": "dianne.russell@example.com",
+        "status": "inactive"
+    },
+    {
+        "id": 6,
+        "name": "Guy Hawkins",
+        "currentLicense": "Pending",
+        "homeBase": "SEA",
+        "favorites": [
+            "SEA",
+            "YVR",
+            "LAX",
+            "HNL",
+            "ANC"
+        ],
+        "email": "guy.hawkins@example.com",
+        "status": "active"
+    },
+    {
+        "id": 7,
+        "name": "Courtney Henry",
+        "currentLicense": "No License",
+        "homeBase": "ORD",
+        "favorites": [
+            "ORD",
+            "ATL",
+            "MCO",
+            "DTW",
+            "MSP"
+        ],
+        "email": "courtney.henry@example.com",
+        "status": "active"
+    },
+    {
+        "id": 8,
+        "name": "Wade Warren",
+        "currentLicense": "Class D",
+        "homeBase": "ATL",
+        "favorites": [
+            "ATL",
+            "JFK",
+            "BOS",
+            "CLT",
+            "PHL"
+        ],
+        "email": "wade.warren@example.com",
+        "status": "inactive"
+    },
+    {
+        "id": 9,
+        "name": "Esther Howard",
+        "currentLicense": "Suspended",
+        "homeBase": "YYZ",
+        "favorites": [
+            "YYZ",
+            "YUL",
+            "YOW",
+            "YVR",
+            "YYC"
+        ],
+        "email": "esther.howard@example.com",
+        "status": "inactive"
+    },
+    {
+        "id": 10,
+        "name": "Savannah Nguyen",
+        "currentLicense": "Class A",
+        "homeBase": "LHR",
+        "favorites": [
+            "LHR",
+            "CDG",
+            "FRA",
+            "AMS",
+            "MAD"
+        ],
+        "email": "savannah.nguyen@example.com",
+        "status": "active"
+    }
+]

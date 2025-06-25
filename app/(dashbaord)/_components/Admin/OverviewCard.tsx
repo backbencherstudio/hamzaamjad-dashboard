@@ -7,7 +7,7 @@ export default function OverviewCard() {
     const data = [
         {
             title: 'Total Pilot User',
-            value: 0,
+            value: 0 ,
         },
         {
             title: 'Total Instructor ',

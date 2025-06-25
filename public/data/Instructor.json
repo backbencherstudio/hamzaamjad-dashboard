@@ -1,0 +1,129 @@
+[
+    {
+        "id": 1,
+        "name": "Cody Fisher",
+        "student": [
+            "Cody Fisher",
+            "Marvin McKi",
+            "Cody Fisher"
+        ],
+        "email": "cody.fisher@example.com",
+        "phone": "+1234567890",
+        "address": "123 Main St, Anytown, USA",
+        "status": "active"
+    },
+    {
+        "id": 2,
+        "name": "Jenny Wilson",
+        "student": [
+            "Jenny Wilson",
+            "Robert Lang",
+            "Ella Brown"
+        ],
+        "email": "jenny.wilson@example.com",
+        "phone": "+1987654321",
+        "address": "456 Oak Ave, Springfield, USA",
+        "status": "active"
+    },
+    {
+        "id": 3,
+        "name": "Ronald Richards",
+        "student": [
+            "Ronald Richards",
+            "Derek Hale"
+        ],
+        "email": "ronald.richards@example.com",
+        "phone": "+1122334455",
+        "address": "789 Pine St, Greenville, USA",
+        "status": "inactive"
+    },
+    {
+        "id": 4,
+        "name": "Kristin Watson",
+        "student": [
+            "Kristin Watson",
+            "Sam Miles",
+            "Anna Lee"
+        ],
+        "email": "kristin.watson@example.com",
+        "phone": "+1098765432",
+        "address": "321 Maple Rd, Fairview, USA",
+        "status": "active"
+    },
+    {
+        "id": 5,
+        "name": "Dianne Russell",
+        "student": [
+            "Dianne Russell",
+            "Tommy Young"
+        ],
+        "email": "dianne.russell@example.com",
+        "phone": "+1029384756",
+        "address": "654 Cedar Blvd, Hilltown, USA",
+        "status": "inactive"
+    },
+    {
+        "id": 6,
+        "name": "Guy Hawkins",
+        "student": [
+            "Guy Hawkins",
+            "Emily Stone",
+            "Chris Pine"
+        ],
+        "email": "guy.hawkins@example.com",
+        "phone": "+1123581321",
+        "address": "852 Walnut St, Riverdale, USA",
+        "status": "active"
+    },
+    {
+        "id": 7,
+        "name": "Courtney Henry",
+        "student": [
+            "Courtney Henry",
+            "Liam Scott",
+            "Mia Perry"
+        ],
+        "email": "courtney.henry@example.com",
+        "phone": "+1414141414",
+        "address": "963 Birch Ln, Lakeview, USA",
+        "status": "active"
+    },
+    {
+        "id": 8,
+        "name": "Wade Warren",
+        "student": [
+            "Wade Warren",
+            "Sophia Brooks"
+        ],
+        "email": "wade.warren@example.com",
+        "phone": "+1555666777",
+        "address": "147 Elm St, Northport, USA",
+        "status": "inactive"
+    },
+    {
+        "id": 9,
+        "name": "Esther Howard",
+        "student": [
+            "Esther Howard",
+            "Lucas Ray",
+            "Isla Hart"
+        ],
+        "email": "esther.howard@example.com",
+        "phone": "+1678901234",
+        "address": "258 Willow Dr, Southside, USA",
+        "status": "active"
+    },
+    {
+        "id": 10,
+        "name": "Savannah Nguyen",
+        "student": [
+            "Savannah Nguyen",
+            "Oliver Smith",
+            "Luna Gray"
+        ],
+        "email": "savannah.nguyen@example.com",
+        "phone": "+1765432198",
+        "address": "369 Chestnut Ave, Midtown, USA",
+        "status": "active"
+    }
+]

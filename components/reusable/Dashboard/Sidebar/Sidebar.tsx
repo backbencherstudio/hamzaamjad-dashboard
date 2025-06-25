@@ -5,7 +5,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { IoClose } from 'react-icons/io5';
 import { HiArrowRightOnRectangle } from "react-icons/hi2";
 import { toast } from 'react-toastify';
-import { LayoutGrid, Building2, Truck, Calendar } from 'lucide-react';
 import Image from 'next/image';
 import MenuIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/MenuIcon';
 import UserIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/UserIcon';
@@ -27,13 +26,13 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
     const menuItems = [
 
-        { icon: MenuIcon, label: 'Dashboard', href: '/dashboard', role: 'admin' },
-        { icon: UserIcon, label: 'Pilot User', href: '/manage-garages', role: 'admin' },
-        { icon: EditableIcon, label: 'Instructor', href: '/manage-drivers', role: 'admin' },
-        { icon: AirplaneIcon, label: 'Logbook', href: '/manage-bookings', role: 'admin' },
-        { icon: MicIcon, label: 'Podcasts', href: '/manage-bookings', role: 'admin' },
-        { icon: BookIcon, label: 'E-book', href: '/manage-bookings', role: 'admin' },
-        { icon: FilesIcon, label: 'Membership', href: '/manage-bookings', role: 'admin' },
+        { icon: MenuIcon, label: 'Dashboard', href: '/dashboard' },
+        { icon: UserIcon, label: 'Pilot User', href: '/pilot-user' },
+        { icon: EditableIcon, label: 'Instructor', href: '/instructor' },
+        { icon: AirplaneIcon, label: 'Logbook', href: '/logbook' },
+        { icon: MicIcon, label: 'Podcasts', href: '/podcasts' },
+        { icon: BookIcon, label: 'E-book', href: '/e-book' },
+        { icon: FilesIcon, label: 'Membership', href: '/membership' },
 
     ];
 
@@ -50,7 +49,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
 
     return (
-        <div className="w-64 h-screen bg-[#23293D] flex flex-col shadow-[0px_4px_40px_0px_rgba(0,0,0,0.25)]" >
+        <div className="w-64 h-screen bg-[#23293D] flex flex-col " >
             {/* Header */}
             <div className="py-5 px-3 flex justify-between items-center mt-2">
                 <div className='flex items-center gap-2'>
@@ -73,7 +72,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 <nav className="mt-4 px-3">
                     <ul className="space-y-6">
                         {menuItems
-                            .filter(item => item.role === user.role)
                             .map((item) => {
                                 const isActive = pathname === item.href;
                                 return (
