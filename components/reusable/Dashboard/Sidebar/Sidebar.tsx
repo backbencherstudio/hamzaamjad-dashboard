@@ -13,6 +13,7 @@ import AirplaneIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/Airpl
 import MicIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/MicIcon';
 import BookIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/BookIcon';
 import FilesIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/FilesIcon';
+import PromoCodeIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/PromoCodeIcon';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -33,6 +34,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
         { icon: MicIcon, label: 'Podcasts', href: '/podcasts' },
         { icon: BookIcon, label: 'E-book', href: '/e-book' },
         { icon: FilesIcon, label: 'Membership', href: '/membership' },
+        { icon: PromoCodeIcon, label: 'Promo Code ', href: '/promo-code' },
 
     ];
 

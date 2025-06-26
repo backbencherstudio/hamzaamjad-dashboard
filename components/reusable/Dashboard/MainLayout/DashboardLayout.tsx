@@ -14,10 +14,6 @@ const DashboardLayout = ({ children }: LayoutProps) => {
         setIsSidebarOpen(!isSidebarOpen);
     };
 
- 
-
-
-
     return (
         <div className="flex h-screen">
             {/* Sidebar */}
