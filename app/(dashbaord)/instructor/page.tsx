@@ -7,9 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/compon
 import { Button } from '@/components/ui/button'
 import { MoreVertical } from 'lucide-react'
 import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReusableModal'
-import { useForm } from 'react-hook-form'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import AddInstructor from '../_components/Admin/AddInstructor/AddInstructor'
 
 export default function ManageBookings() {
     const [data, setData] = useState([]);
@@ -18,7 +16,6 @@ export default function ManageBookings() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
     // Fetch data from JSON file
     useEffect(() => {
@@ -172,12 +169,6 @@ export default function ManageBookings() {
         }
     ];
 
-    const onSubmit = (formData: any) => {
-        // You can add logic to update your data state here
-        setIsModalOpen(false);
-        reset();
-    };
-
     return (
         <>
             <div className='mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between'>
@@ -251,50 +242,7 @@ export default function ManageBookings() {
                 onClose={() => setIsModalOpen(false)}
                 title="Add New Instructor"
             >
-                <form
-                    className="p-6 flex flex-col gap-4 bg-[#1D1F2C]"
-                    onSubmit={handleSubmit(onSubmit)}
-                >
-                    <div>
-                        <Label className="block text-sm text-white mb-1" htmlFor="name">Name</Label>
-                        <Input
-                            id="name"
-                            type="text"
-                            placeholder="Enter instructor name"
-                            className="w-full px-4 py-2 rounded bg-[#161721] text-white border border-[#23293D] focus:outline-none"
-                            {...register('name', { required: 'Name is required' })}
-                        />
-                        {errors.name && <span className="text-xs text-red-400">{errors.name.message as string}</span>}
-                    </div>
-                    <div>
-                        <Label className="block text-sm text-white mb-1" htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="Enter instructor email"
-                            className="w-full px-4 py-2 rounded bg-[#161721] text-white border border-[#23293D] focus:outline-none"
-                            {...register('email', { required: 'Email is required' })}
-                        />
-                        {errors.email && <span className="text-xs text-red-400">{errors.email.message as string}</span>}
-                    </div>
-                    <div>
-                        <Label className="block text-sm text-white mb-1" htmlFor="phone">Phone</Label>
-                        <Input
-                            id="phone"
-                            type="text"
-                            placeholder="Enter instructor phone"
-                            className="w-full px-4 py-2 rounded bg-[#161721] text-white border border-[#23293D] focus:outline-none"
-                            {...register('phone', { required: 'Phone is required' })}
-                        />
-                        {errors.phone && <span className="text-xs text-red-400">{errors.phone.message as string}</span>}
-                    </div>
-                    <Button
-                        type="submit"
-                        className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2"
-                    >
-                        Add Instructor
-                    </Button>
-                </form>
+                <AddInstructor />
             </CustomReusableModal>
 
         </>
