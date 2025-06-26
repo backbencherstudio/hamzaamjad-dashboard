@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 interface ProfileFormData {
     name: string
     email: string
-    phone: string
 }
 
 interface PasswordFormData {
@@ -53,7 +52,7 @@ const ProfileImageUpload = ({
                     <AvatarImage src={profileImage} alt="Profile" />
                     <AvatarFallback>RD</AvatarFallback>
                 </Avatar>
-                <div className="absolute bottom-0 right-0 w-8 h-8 bg-[#14A228] rounded-full flex items-center justify-center text-white hover:bg-green-600 transition-colors">
+                <div className="absolute bottom-0 right-0 w-8 h-8 bg-[#1D1F2C] rounded-full flex items-center justify-center text-white hover:bg-[#1D1F2C]/80 transition-colors">
                     <ImageDownIcon className="h-4 w-4" />
                 </div>
             </div>
@@ -81,7 +80,7 @@ const EditableInput = ({
     validation
 }: EditableInputProps) => (
     <div className="space-y-2">
-        <Label htmlFor={id}>{label}</Label>
+        <Label className='text-white' htmlFor={id}>{label}</Label>
         <div className="relative">
             <Input
                 id={id}
@@ -89,7 +88,7 @@ const EditableInput = ({
                 placeholder={placeholder}
                 disabled={editingField !== id}
                 onBlur={onBlur}
-                className={`${editingField !== id ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'}`}
+                className={`text-white py-5 ${editingField !== id ? 'bg-[#161721] cursor-not-allowed' : 'bg-[#161721] text-white'}`}
                 {...register(id, validation)}
             />
             <Button
@@ -170,11 +169,11 @@ const TabButton = ({
     <button
         onClick={onClick}
         className={`w-full flex items-center gap-3 text-sm lg:text-base cursor-pointer p-3 rounded-lg text-left transition-all ${isActive
-            ? 'bg-green-100 text-green-700'
-            : 'text-gray-700 hover:bg-gray-50'
+            ? 'bg-[#3762E4] text-white'
+            : 'text-white hover:bg-[#3762E4]/80'
             }`}
     >
-        <Icon className={`h-5 w-5 ${isActive ? 'text-green-600' : 'text-gray-500'
+        <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-white'
             }`} />
         {children}
     </button>
@@ -196,7 +195,6 @@ export default function AdminProfile() {
         defaultValues: {
             name: "Robbi Darwis",
             email: "",
-            phone: "",
         },
     })
 
@@ -268,13 +266,6 @@ export default function AdminProfile() {
                 value: /^\S+@\S+$/i,
                 message: "Please enter a valid email address"
             }
-        },
-        phone: {
-            required: "Phone number is required",
-            minLength: {
-                value: 10,
-                message: "Phone number must be at least 10 characters"
-            }
         }
     }
 
@@ -291,8 +282,8 @@ export default function AdminProfile() {
             <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6">
                 {/* Sidebar */}
                 <div className="w-full lg:w-64">
-                    <Card className="shadow-sm">
-                        <CardContent className="p-4">
+                    <Card className="shadow-sm border-none">
+                        <CardContent className="p-4 bg-[#1D1F2C] text-white rounded-lg">
                             <div className="space-y-2 flex flex-row lg:flex-col gap-2">
                                 <TabButton
                                     isActive={activeTab === 'profile'}
@@ -316,11 +307,11 @@ export default function AdminProfile() {
                 {/* Main Content */}
                 <div className="flex-1">
                     {activeTab === 'profile' && (
-                        <Card className="shadow-sm">
-                            <CardHeader className="bg-[#14A228] text-white rounded-t-lg p-5">
+                        <Card className="shadow-sm border-none">
+                            <CardHeader className="bg-[#23293D] text-white rounded-t-lg p-5">
                                 <CardTitle className="text-2xl">My Profile</CardTitle>
                             </CardHeader>
-                            <CardContent className="p-6">
+                            <CardContent className="p-6 mt-[-25px] rounded-b-lg bg-[#1D1F2C] text-white">
                                 <ProfileImageUpload
                                     profileImage={profileImage}
                                     onImageClick={handleImageClick}
@@ -354,22 +345,10 @@ export default function AdminProfile() {
                                         validation={profileValidation.email}
                                     />
 
-                                    <EditableInput
-                                        id="phone"
-                                        label="Phone Number"
-                                        type="tel"
-                                        placeholder="Enter your phone number"
-                                        editingField={editingField}
-                                        onEditClick={handleEditClick}
-                                        onBlur={handleFieldBlur}
-                                        register={profileForm.register}
-                                        errors={profileForm.formState.errors}
-                                        validation={profileValidation.phone}
-                                    />
 
                                     <Button
                                         type="submit"
-                                        className="w-full bg-[#14A228] hover:bg-green-600"
+                                        className="w-full cursor-pointer py-5 transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white rounded-lg"
                                     >
                                         Save Change
                                     </Button>
@@ -379,11 +358,11 @@ export default function AdminProfile() {
                     )}
 
                     {activeTab === 'password' && (
-                        <Card className="shadow-sm">
-                            <CardHeader className="bg-[#14A228] text-white rounded-t-lg p-5">
+                        <Card className="shadow-sm border-none">
+                            <CardHeader className="bg-[#23293D] text-white rounded-t-lg p-5">
                                 <CardTitle className="text-2xl">Password</CardTitle>
                             </CardHeader>
-                            <CardContent className="p-6">
+                            <CardContent className="p-6 mt-[-25px] rounded-b-lg bg-[#1D1F2C] text-white">
                                 <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6">
                                     <PasswordInput
                                         id="oldPassword"
@@ -420,7 +399,7 @@ export default function AdminProfile() {
 
                                     <Button
                                         type="submit"
-                                        className="w-full bg-[#14A228] hover:bg-green-600"
+                                        className="w-full cursor-pointer py-5 transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white rounded-lg"
                                     >
                                         Save Change
                                     </Button>
