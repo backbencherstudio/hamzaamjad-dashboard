@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import ReusableTable from '@/components/reusable/Dashboard/Table/ReuseableTable'
 import ReusablePagination from '@/components/reusable/Dashboard/Table/ReusablePagination'
-import { toast } from 'react-toastify'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { MoreVertical } from 'lucide-react'
@@ -10,6 +9,8 @@ import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReu
 import EbookAdd from '../_components/Admin/Ebook/EbookAdd'
 import { useEbook } from '@/hooks/useEbook'
 import { Ebook } from '@/apis/ebookApis'
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import Image from 'next/image'
 
 export default function EbookPage() {
   const {
@@ -30,8 +31,9 @@ export default function EbookPage() {
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedEbook, setSelectedEbook] = useState<Ebook | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (searchTimeout) {
@@ -40,21 +42,19 @@ export default function EbookPage() {
     };
   }, [searchTimeout]);
 
-  // Handle search input change
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    
-    // Clear previous timeout
+
     if (searchTimeout) {
       clearTimeout(searchTimeout);
     }
-    
-    // Set new timeout for search
+
+
     const timeoutId = setTimeout(() => {
       setCurrentPage(1);
       fetchEbooks(1, itemsPerPage, value || undefined);
     }, 300);
-    
+
     setSearchTimeout(timeoutId);
   };
 
@@ -82,7 +82,9 @@ export default function EbookPage() {
       label: 'E-book Image',
       width: '30%',
       render: (value: string) => (
-        <img
+        <Image
+          width={100}
+          height={100}
           src={value || '/Image/logo/logo.png'}
           alt="E-book"
           className="w-12 h-12 rounded object-cover"
@@ -110,9 +112,25 @@ export default function EbookPage() {
   ];
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this ebook?')) {
-      await deleteEbook(id);
+    await deleteEbook(id);
+  };
+
+  const openDeleteDialog = (id: string) => {
+    setDeleteId(id);
+    setDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteId) {
+      await handleDelete(deleteId);
+      setDialogOpen(false);
+      setDeleteId(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setDialogOpen(false);
+    setDeleteId(null);
   };
 
   const handleEdit = (ebook: Ebook) => {
@@ -150,7 +168,7 @@ export default function EbookPage() {
             <Button
               variant="ghost"
               className="w-full justify-start text-red-500 cursor-pointer"
-              onClick={() => handleDelete(row.id)}
+              onClick={() => openDeleteDialog(row.id)}
               disabled={loading}
             >
               Delete
@@ -190,31 +208,22 @@ export default function EbookPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-white">Loading ebooks...</span>
-        </div>
-      ) : (
-        <ReusableTable
-          data={paginatedData}
-          columns={columns}
-          actions={actions}
-          className="mt-4"
-        />
-      )}
+      <ReusableTable
+        data={paginatedData}
+        columns={columns}
+        actions={actions}
+        className="mt-4"
+      />
 
-      {!loading && (
-        <ReusablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          itemsPerPage={itemsPerPage}
-          totalItems={totalItems}
-          onPageChange={handlePageChange}
-          onItemsPerPageChange={handleItemsPerPageChange}
-          className=""
-        />
-      )}
+      <ReusablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        totalItems={totalItems}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        className=""
+      />
 
       {/* Add/Edit Ebook Modal */}
       <CustomReusableModal
@@ -223,13 +232,33 @@ export default function EbookPage() {
         onClose={handleCloseModal}
         title={isEditMode ? "Edit E-book" : "Add New E-book"}
       >
-        <EbookAdd 
-          onClose={handleCloseModal} 
+        <EbookAdd
+          onClose={handleCloseModal}
           isEditMode={isEditMode}
           selectedEbook={selectedEbook}
           updateEbook={updateEbook}
         />
       </CustomReusableModal>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete E-book?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this e-book? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelDelete}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

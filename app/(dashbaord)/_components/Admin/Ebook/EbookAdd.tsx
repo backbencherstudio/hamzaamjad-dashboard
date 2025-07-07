@@ -8,7 +8,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { useEbook } from '@/hooks/useEbook';
 import { toast } from 'react-toastify';
-import { Ebook, CreateEbookData, UpdateEbookData } from '@/apis/ebookApis';
+import { Ebook,  UpdateEbookData } from '@/apis/ebookApis';
 
 interface EbookAddProps {
     onClose?: () => void;
@@ -28,7 +28,6 @@ export default function EbookAdd({ onClose, isEditMode = false, selectedEbook, u
     const [pdfError, setPdfError] = useState('');
     const [coverError, setCoverError] = useState('');
 
-    // Populate form when in edit mode
     useEffect(() => {
         if (isEditMode && selectedEbook) {
             setValue('title', selectedEbook.title);
@@ -39,7 +38,6 @@ export default function EbookAdd({ onClose, isEditMode = false, selectedEbook, u
     }, [isEditMode, selectedEbook, setValue]);
 
     const onSubmit = async (formData: any) => {
-        // For edit mode, files are optional
         if (!isEditMode) {
             if (!pdfFile) {
                 setPdfError('PDF file is required');
@@ -60,13 +58,10 @@ export default function EbookAdd({ onClose, isEditMode = false, selectedEbook, u
             let success = false;
             
             if (isEditMode && selectedEbook && updateEbook) {
-                // For update, only include files if they were changed
                 const updateData: UpdateEbookData = {
                     title: formData.title,
                     date: format(selectedDate, 'yyyy-MM-dd'),
                 };
-                
-                // Only add files if new ones were selected
                 if (pdfFile) {
                     updateData.pdf = pdfFile;
                 }
@@ -76,7 +71,6 @@ export default function EbookAdd({ onClose, isEditMode = false, selectedEbook, u
                 
                 success = await updateEbook(selectedEbook.id, updateData);
             } else {
-                // For create, files are required
                 const ebookData = {
                     title: formData.title,
                     date: format(selectedDate, 'yyyy-MM-dd'),
@@ -96,7 +90,6 @@ export default function EbookAdd({ onClose, isEditMode = false, selectedEbook, u
                 setPdfError('');
                 setCoverError('');
                 
-                // Close modal if onClose is provided
                 if (onClose) {
                     onClose();
                 }

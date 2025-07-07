@@ -21,8 +21,6 @@ export default function ReusablePagination({
     onItemsPerPageChange,
     className = ""
 }: ReusablePaginationProps) {
-    // const startIndex = (currentPage - 1) * itemsPerPage + 1
-    // const endIndex = Math.min(currentPage * itemsPerPage, totalItems)
 
     const handlePrevious = () => {
         if (currentPage > 1) {
