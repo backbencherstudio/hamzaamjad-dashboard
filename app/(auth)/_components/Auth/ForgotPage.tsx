@@ -7,11 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Loader2, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'react-toastify'
-import NewPassword from './NewPassword'
+import { forgotPasswordApi } from '@/apis/authApis'
+import TokenMatch from './TokenMatch'
 
 export default function ForgotPage() {
     const [isLoading, setIsLoading] = React.useState(false)
-    const [showNewPassword, setShowNewPassword] = React.useState(false)
+    const [showOtpForm, setShowOtpForm] = React.useState(false)
+    const [userEmail, setUserEmail] = React.useState('')
+    const [otpExpiry, setOtpExpiry] = React.useState<string>('')
 
     const form = useForm({
         defaultValues: {
@@ -20,27 +23,34 @@ export default function ForgotPage() {
         mode: 'onTouched',
     })
 
-    const onSubmit = (data: any) => {
-        setIsLoading(true)
-        setTimeout(() => {
+    const onSubmit = async (data: any) => {
+        try {
+            setIsLoading(true)
+            const response = await forgotPasswordApi({ email: data.email })
+
+            if (response.success) {
+                setUserEmail(data.email)
+                setOtpExpiry(response.otpExpiry || '')
+                setShowOtpForm(true)
+                toast.success(response.message || 'OTP sent to your email successfully!')
+            } else {
+                toast.error(response.message || 'Failed to send OTP')
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to send OTP')
+        } finally {
             setIsLoading(false)
-            toast.success('Password reset successfully! Check your email.')
-            setTimeout(() => {
-                setShowNewPassword(true)
-            }, 500)
-        }, 200)
-        // console.log(data)
+        }
     }
 
-
-    if (showNewPassword) {
-        return <NewPassword />
+    if (showOtpForm) {
+        return <TokenMatch email={userEmail} initialOtpExpiry={otpExpiry} />
     }
 
     return (
         <div className="w-full md:max-w-lg bg-[#1D1F2C] rounded-lg p-8 shadow-lg">
             <h2 className="text-2xl font-semibold text-white mb-2">Forgot your password?</h2>
-            <p className='text-gray-300 mb-8 text-sm'>No worries, just enter your email and we'll send you a reset link.</p>
+            <p className='text-gray-300 mb-8 text-sm'>No worries, just enter your email and we'll send you a reset OTP.</p>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <FormField
@@ -67,7 +77,7 @@ export default function ForgotPage() {
                     />
 
                     <Button type="submit" className="w-full py-6 px-4 cursor-pointer bg-[#3762E4] text-white text-base font-semibold rounded-lg shadow-none hover:bg-[#2C47C7]" disabled={isLoading}>
-                        {isLoading ? <><Loader2 className="animate-spin" /> Loading...</> : 'Reset Password'}
+                        {isLoading ? <><Loader2 className="animate-spin" /> Loading...</> : 'Send OTP'}
                     </Button>
 
                     <div className='flex justify-center items-center'>
