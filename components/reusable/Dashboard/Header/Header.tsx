@@ -14,18 +14,18 @@ import {
 } from '@/components/ui/dropdown-menu'
 import greetingTime from "greeting-time";
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import Image from 'next/image'
 
 export default function Header({ onMenuClick }: {
     onMenuClick: () => void,
 }) {
     const router = useRouter();
+    const { user, logout } = useAuth();
     const [greeting, setGreeting] = useState<string>("");
-    const user = {
-        name: 'Ronald Richards',
-        email: 'admin@gmail.com',
-        role: 'admin',
-        avatar: '/api/placeholder/32/32'
-    }
+
+    // Debug: Log user data to console
+    // console.log('Header - User data:', user);
 
     // real time greeting
     useEffect(() => {
@@ -38,6 +38,11 @@ export default function Header({ onMenuClick }: {
         const interval = setInterval(updateGreeting, 60000);
         return () => clearInterval(interval);
     }, []);
+
+    const handleLogout = () => {
+        logout();
+        router.push('/login');
+    };
 
     return (
         <nav className="bg-[#23293D] shadow-[0px_4px_40px_0px_rgba(0,0,0,0.25)]">
@@ -99,15 +104,26 @@ export default function Header({ onMenuClick }: {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="flex items-center gap-2 px-2 cursor-pointer select-none hover:bg-transparent">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={user.avatar} alt="User Avatar" />
-                                    <AvatarFallback className="select-none">{user.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
+                                {user?.image ? (
+                                    <div className="h-8 w-8 rounded-full overflow-hidden">
+                                        <Image
+                                            width={32}
+                                            height={32}
+                                            src={user.image}
+                                            alt={`${user.name || 'User'} Avatar`}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                ) : (
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarFallback className="select-none bg-[#3762E4] text-white">
+                                            {user?.name?.charAt(0) || 'A'}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                )}
                                 <div className="hidden md:flex flex-col items-start select-none">
                                     <span className="text-xs text-[#3762E4] select-none capitalize">{greeting}</span>
-                                    <span className="text-sm font-medium text-white select-none">{user.name}</span>
-                                    {/* greeting */}
-
+                                    <span className="text-sm font-medium text-white select-none">{user?.name || 'Admin'}</span>
                                 </div>
                                 <ChevronDown className="h-4 w-4 text-gray-500" />
                             </Button>
@@ -116,16 +132,13 @@ export default function Header({ onMenuClick }: {
                             <DropdownMenuLabel>My Account</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="flex items-center gap-2 cursor-pointer" onClick={() => {
-
-                                // i have three role admin, garage, driver
-                                const profileRoute = user.role === 'admin' ? '/profile' : '';
-                                router.push(profileRoute);
+                                router.push('/profile');
                             }}>
                                 <User className="h-4 w-4" />
                                 <span>Profile</span>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="flex items-center gap-2 text-red-600 cursor-pointer">
+                            <DropdownMenuItem className="flex items-center gap-2 text-red-600 cursor-pointer" onClick={handleLogout}>
                                 <LogOut className="h-4 w-4" />
                                 <span>Log out</span>
                             </DropdownMenuItem>

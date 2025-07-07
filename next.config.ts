@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     unoptimized: true,
-    domains: ['i.ibb.co', 'images.unsplash.com'],
+    domains: ['i.ibb.co', 'images.unsplash.com', 'war-receives-location-grace.trycloudflare.com'],
   },
 };
 

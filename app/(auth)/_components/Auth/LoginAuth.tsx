@@ -7,10 +7,15 @@ import { Button } from '@/components/ui/button'
 import { Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'react-toastify'
+import { useAuth } from '@/hooks/useAuth'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function LoginAuth() {
     const [showPassword, setShowPassword] = React.useState(false)
-    const [isLoading, setIsLoading] = React.useState(false)
+    const { login, isLoading } = useAuth()
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    
     const form = useForm({
         defaultValues: {
             email: '',
@@ -19,16 +24,26 @@ export default function LoginAuth() {
         mode: 'onTouched',
     })
 
-    const onSubmit = (data: any) => {
-        setIsLoading(true)
-        setTimeout(() => {
-            setIsLoading(false)
-            toast.success('Login successful')
-        }, 2000)
-        console.log(data)
-    }
-    return (
+    // Check for error parameter in URL
+    React.useEffect(() => {
+        const error = searchParams.get('error')
+        if (error === 'access_denied') {
+            toast.error('Access denied. Admin privileges required.')
+        }
+    }, [searchParams])
 
+    const onSubmit = async (data: any) => {
+        const result = await login(data.email, data.password)
+        
+        if (result.success) {
+            toast.success(result.message)
+            router.push('/dashboard')
+        } else {
+            toast.error(result.message)
+        }
+    }
+
+    return (
         <div className="w-full md:max-w-lg bg-[#1D1F2C] rounded-lg p-8 shadow-lg">
             <h2 className="text-2xl font-semibold mb-8 text-white">Admin Login</h2>
             <Form {...form}>

@@ -1069,9 +1069,9 @@ atob@^2.1.2:
   resolved "https://registry.npmjs.org/atob/-/atob-2.1.2.tgz"
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
-axios@^1.9.0:
+axios@^1.10.0:
   version "1.10.0"
-  resolved "https://registry.npmjs.org/axios/-/axios-1.10.0.tgz"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.10.0.tgz#af320aee8632eaf2a400b6a1979fa75856f38d54"
   integrity sha512-/1xYAC4MP/HEG+3duIhFr4ZQXR4sQXOIe+o6sdqzeykGLx6Upp/1p8MHqhINOvGeP7xyNHe7tsiJByc4SSVUxw==
   dependencies:
     follow-redirects "^1.15.6"
@@ -1484,7 +1484,7 @@ graceful-fs@^4.2.4:
 
 greeting-time@^1.0.0:
   version "1.0.0"
-  resolved "https://registry.yarnpkg.com/greeting-time/-/greeting-time-1.0.0.tgz#2c677ff67b830bda57ddeaf40be4e8a2c9db8af2"
+  resolved "https://registry.npmjs.org/greeting-time/-/greeting-time-1.0.0.tgz"
   integrity sha512-SjefO4MuSaL1xvFtxMZKnoROsh/t8s3UaWjNfsRA7IvD2o7picqySgYk7NAZmhEaCieQhXsrbjfP33aGRADxbg==
 
 has-symbols@^1.0.3, has-symbols@^1.1.0:
@@ -1869,7 +1869,7 @@ react-dom@^19.0.0:
 
 react-hook-form@^7.58.1:
   version "7.58.1"
-  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.58.1.tgz#b755acc1b42a19e4253c878b766e4c5ebd070fe8"
+  resolved "https://registry.npmjs.org/react-hook-form/-/react-hook-form-7.58.1.tgz"
   integrity sha512-Lml/KZYEEFfPhUVgE0RdCVpnC4yhW+PndRhbiTtdvSlQTL8IfVR+iQkBjLIvmmc6+GGoVeM11z37ktKFPAb0FA==
 
 react-icons@^5.5.0:
