@@ -1,19 +1,20 @@
 import { useState, useEffect, createContext, useContext, useCallback } from 'react';
-import { createEbookApi, getAllEbookApi, deleteEbookApi, Ebook, CreateEbookData } from '@/apis/ebookApis';
+import { createEbookApi, getAllEbookApi, deleteEbookApi, updateEbookApi, Ebook, CreateEbookData, UpdateEbookData } from '@/apis/ebookApis';
 import { toast } from 'react-toastify';
 
 interface EbookContextType {
-    ebooks: Ebook[];
-    loading: boolean;
-    totalPages: number;
-    totalItems: number;
-    currentPage: number;
-    itemsPerPage: number;
-    createEbook: (data: CreateEbookData) => Promise<boolean>;
-    fetchEbooks: (page?: number, limit?: number, search?: string) => Promise<void>;
-    deleteEbook: (id: string) => Promise<boolean>;
-    setCurrentPage: (page: number) => void;
-    setItemsPerPage: (limit: number) => void;
+  ebooks: Ebook[];
+  loading: boolean;
+  totalPages: number;
+  totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
+  createEbook: (data: CreateEbookData) => Promise<boolean>;
+  updateEbook: (id: string, data: UpdateEbookData) => Promise<boolean>;
+  fetchEbooks: (page?: number, limit?: number, search?: string) => Promise<void>;
+  deleteEbook: (id: string) => Promise<boolean>;
+  setCurrentPage: (page: number) => void;
+  setItemsPerPage: (limit: number) => void;
 }
 
 const EbookContext = createContext<EbookContextType | undefined>(undefined);
@@ -73,6 +74,32 @@ export function EbookProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
         }
     }, [itemsPerPage]);
+
+    const updateEbook = useCallback(async (id: string, data: UpdateEbookData): Promise<boolean> => {
+        try {
+            setLoading(true);
+            const response = await updateEbookApi(id, data);
+
+            if (response.success) {
+                toast.success('Ebook updated successfully');
+                const refreshResponse = await getAllEbookApi(currentPage, itemsPerPage);
+                if (refreshResponse.success) {
+                    setEbooks(refreshResponse.data.ebooks);
+                    setTotalPages(refreshResponse.data.pagination.totalPages);
+                    setTotalItems(refreshResponse.data.pagination.totalItems);
+                }
+                return true;
+            } else {
+                toast.error(response.message || 'Failed to update ebook');
+                return false;
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to update ebook');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, [currentPage, itemsPerPage]);
 
     const deleteEbook = useCallback(async (id: string): Promise<boolean> => {
         try {
@@ -136,6 +163,7 @@ export function EbookProvider({ children }: { children: React.ReactNode }) {
             currentPage,
             itemsPerPage,
             createEbook,
+            updateEbook,
             fetchEbooks,
             deleteEbook,
             setCurrentPage: setCurrentPageCallback,

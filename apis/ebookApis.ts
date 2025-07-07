@@ -8,6 +8,13 @@ export interface CreateEbookData {
     cover: File;
 }
 
+export interface UpdateEbookData {
+    title: string;
+    date: string;
+    pdf?: File;
+    cover?: File;
+}
+
 export interface ApiResponse<T> {
     success: boolean;
     message: string;
@@ -71,5 +78,32 @@ export const deleteEbookApi = async (id: string): Promise<ApiResponse<{ message:
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Failed to delete ebook');
+    }
+}
+
+
+// update ebook api
+export const updateEbookApi = async (id: string, data: UpdateEbookData): Promise<ApiResponse<Ebook>> => {
+    try {
+        const formData = new FormData();
+        formData.append('title', data.title);
+        formData.append('date', data.date);
+        
+        // Only append files if they exist
+        if (data.pdf) {
+            formData.append('pdf', data.pdf);
+        }
+        if (data.cover) {
+            formData.append('cover', data.cover);
+        }
+
+        const response = await axiosClient.patch(`/ebook/update/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Failed to update ebook');
     }
 }

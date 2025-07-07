@@ -9,6 +9,7 @@ import { MoreVertical } from 'lucide-react'
 import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReusableModal'
 import EbookAdd from '../_components/Admin/Ebook/EbookAdd'
 import { useEbook } from '@/hooks/useEbook'
+import { Ebook } from '@/apis/ebookApis'
 
 export default function EbookPage() {
   const {
@@ -20,12 +21,15 @@ export default function EbookPage() {
     itemsPerPage,
     fetchEbooks,
     deleteEbook,
+    updateEbook,
     setCurrentPage,
     setItemsPerPage
   } = useEbook();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedEbook, setSelectedEbook] = useState<Ebook | null>(null);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -111,6 +115,18 @@ export default function EbookPage() {
     }
   };
 
+  const handleEdit = (ebook: Ebook) => {
+    setSelectedEbook(ebook);
+    setIsEditMode(true);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setIsEditMode(false);
+    setSelectedEbook(null);
+  };
+
   const actions = [
     {
       label: 'Action',
@@ -125,13 +141,20 @@ export default function EbookPage() {
           <DropdownMenuContent align="end" className="w-32 p-2">
             <Button
               variant="ghost"
+              className="w-full justify-start cursor-pointer"
+              onClick={() => handleEdit(row)}
+              disabled={loading}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="ghost"
               className="w-full justify-start text-red-500 cursor-pointer"
               onClick={() => handleDelete(row.id)}
               disabled={loading}
             >
               Delete
             </Button>
-            <Button variant="ghost" className="w-full justify-start cursor-pointer">Edit</Button>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -193,14 +216,19 @@ export default function EbookPage() {
         />
       )}
 
-      {/* Add Ebook Modal */}
+      {/* Add/Edit Ebook Modal */}
       <CustomReusableModal
         className='bg-[#1D1F2C] text-white border-none'
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Add New E-book"
+        onClose={handleCloseModal}
+        title={isEditMode ? "Edit E-book" : "Add New E-book"}
       >
-        <EbookAdd onClose={() => setIsModalOpen(false)} />
+        <EbookAdd 
+          onClose={handleCloseModal} 
+          isEditMode={isEditMode}
+          selectedEbook={selectedEbook}
+          updateEbook={updateEbook}
+        />
       </CustomReusableModal>
     </>
   )

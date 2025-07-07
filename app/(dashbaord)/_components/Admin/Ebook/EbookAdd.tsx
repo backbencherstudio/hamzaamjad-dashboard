@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useForm } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -8,12 +8,16 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { useEbook } from '@/hooks/useEbook';
 import { toast } from 'react-toastify';
+import { Ebook, CreateEbookData, UpdateEbookData } from '@/apis/ebookApis';
 
 interface EbookAddProps {
     onClose?: () => void;
+    isEditMode?: boolean;
+    selectedEbook?: Ebook | null;
+    updateEbook?: (id: string, data: UpdateEbookData) => Promise<boolean>;
 }
 
-export default function EbookAdd({ onClose }: EbookAddProps) {
+export default function EbookAdd({ onClose, isEditMode = false, selectedEbook, updateEbook }: EbookAddProps) {
     const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm();
     const { createEbook, loading } = useEbook();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -24,31 +28,65 @@ export default function EbookAdd({ onClose }: EbookAddProps) {
     const [pdfError, setPdfError] = useState('');
     const [coverError, setCoverError] = useState('');
 
+    // Populate form when in edit mode
+    useEffect(() => {
+        if (isEditMode && selectedEbook) {
+            setValue('title', selectedEbook.title);
+            if (selectedEbook.date) {
+                setSelectedDate(new Date(selectedEbook.date));
+            }
+        }
+    }, [isEditMode, selectedEbook, setValue]);
+
     const onSubmit = async (formData: any) => {
-        if (!pdfFile) {
-            setPdfError('PDF file is required');
-            return;
+        // For edit mode, files are optional
+        if (!isEditMode) {
+            if (!pdfFile) {
+                setPdfError('PDF file is required');
+                return;
+            }
+            if (!coverFile) {
+                setCoverError('Cover image is required');
+                return;
+            }
         }
-        if (!coverFile) {
-            setCoverError('Cover image is required');
-            return;
-        }
+        
         if (!selectedDate) {
             toast.error('Please select a date');
             return;
         }
 
-
-
         try {
-            const ebookData = {
-                title: formData.title,
-                date: format(selectedDate, 'yyyy-MM-dd'),
-                pdf: pdfFile,
-                cover: coverFile
-            };
+            let success = false;
+            
+            if (isEditMode && selectedEbook && updateEbook) {
+                // For update, only include files if they were changed
+                const updateData: UpdateEbookData = {
+                    title: formData.title,
+                    date: format(selectedDate, 'yyyy-MM-dd'),
+                };
+                
+                // Only add files if new ones were selected
+                if (pdfFile) {
+                    updateData.pdf = pdfFile;
+                }
+                if (coverFile) {
+                    updateData.cover = coverFile;
+                }
+                
+                success = await updateEbook(selectedEbook.id, updateData);
+            } else {
+                // For create, files are required
+                const ebookData = {
+                    title: formData.title,
+                    date: format(selectedDate, 'yyyy-MM-dd'),
+                    pdf: pdfFile!,
+                    cover: coverFile!
+                };
+                
+                success = await createEbook(ebookData);
+            }
 
-            const success = await createEbook(ebookData);
             if (success) {
                 // Reset form
                 reset();
@@ -64,7 +102,7 @@ export default function EbookAdd({ onClose }: EbookAddProps) {
                 }
             }
         } catch (error) {
-            console.error('Error creating ebook:', error);
+            console.error('Error saving ebook:', error);
         }
     }
 
@@ -175,6 +213,13 @@ export default function EbookAdd({ onClose }: EbookAddProps) {
                                 Size: {(pdfFile.size / (1024 * 1024)).toFixed(2)} MB
                             </div>
                         </div>
+                    ) : isEditMode && selectedEbook?.pdf ? (
+                        <div>
+                            <span>Current PDF: {selectedEbook.pdf.split('/').pop()}</span>
+                            <div className="text-xs text-gray-400 mt-1">
+                                Click to upload new file
+                            </div>
+                        </div>
                     ) : (
                         <>
                             Drag and drop files here
@@ -209,6 +254,17 @@ export default function EbookAdd({ onClose }: EbookAddProps) {
                                 Size: {(coverFile.size / (1024 * 1024)).toFixed(2)} MB
                             </div>
                         </div>
+                    ) : isEditMode && selectedEbook?.cover ? (
+                        <div>
+                            <img
+                                src={selectedEbook.cover}
+                                alt="Current Cover"
+                                className="mx-auto h-16 w-16 object-cover rounded mb-2"
+                            />
+                            <div className="text-xs text-gray-400">
+                                Click to upload new cover
+                            </div>
+                        </div>
                     ) : (
                         <>
                             Drag and drop files here
@@ -229,7 +285,10 @@ export default function EbookAdd({ onClose }: EbookAddProps) {
                 disabled={loading}
                 className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                {loading ? 'Adding E-book...' : 'Add E-book'}
+                {loading 
+                    ? (isEditMode ? 'Updating E-book...' : 'Adding E-book...') 
+                    : (isEditMode ? 'Update E-book' : 'Add E-book')
+                }
             </Button>
         </form>
     )
