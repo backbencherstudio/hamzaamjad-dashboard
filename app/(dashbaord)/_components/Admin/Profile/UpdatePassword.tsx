@@ -8,14 +8,12 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { passwordUpdateApi } from '@/apis/authApis'
 
-// Types
 interface PasswordFormData {
     oldPassword: string
     newPassword: string
     confirmPassword: string
 }
 
-// Password Input Component
 const PasswordInput = ({
     id,
     label,
@@ -66,7 +64,6 @@ const PasswordInput = ({
 )
 
 export default function UpdatePassword() {
-    // State for password visibility
     const [showOldPassword, setShowOldPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -74,7 +71,6 @@ export default function UpdatePassword() {
     const [apiError, setApiError] = useState<string | null>(null)
     const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-    // Form setup
     const passwordForm = useForm<PasswordFormData>({
         defaultValues: {
             oldPassword: "",
@@ -83,18 +79,14 @@ export default function UpdatePassword() {
         },
     })
 
-    // Validation rules
     const passwordValidation = {
         required: "This field is required"
     }
 
-    // Form submission handler
     const onPasswordSubmit = async (data: PasswordFormData) => {
-        // Clear previous messages
         setApiError(null)
         setSuccessMessage(null)
 
-        // Validate password confirmation
         if (data.newPassword !== data.confirmPassword) {
             passwordForm.setError("confirmPassword", {
                 type: "manual",
@@ -136,14 +128,12 @@ export default function UpdatePassword() {
                 <CardTitle className="text-2xl">Password</CardTitle>
             </CardHeader>
             <CardContent className="p-6 mt-[-25px] rounded-b-lg bg-[#1D1F2C] text-white">
-                {/* Success Message */}
                 {successMessage && (
                     <div className="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg">
                         <p className="text-green-400 text-sm">{successMessage}</p>
                     </div>
                 )}
 
-                {/* Error Message */}
                 {apiError && (
                     <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
                         <p className="text-red-400 text-sm">{apiError}</p>

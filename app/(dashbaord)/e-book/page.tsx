@@ -8,62 +8,73 @@ import { Button } from '@/components/ui/button'
 import { MoreVertical } from 'lucide-react'
 import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReusableModal'
 import EbookAdd from '../_components/Admin/Ebook/EbookAdd'
+import { useEbook } from '@/hooks/useEbook'
 
 export default function EbookPage() {
-  const [data, setData] = useState([]);
+  const {
+    ebooks,
+    loading,
+    totalPages,
+    totalItems,
+    currentPage,
+    itemsPerPage,
+    fetchEbooks,
+    deleteEbook,
+    setCurrentPage,
+    setItemsPerPage
+  } = useEbook();
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  // Fetch data from JSON file
+  // Cleanup timeout on unmount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/data/Ebook.json');
-        const jsonData = await response.json();
-        setData(jsonData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('Failed to load podcasts data');
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
       }
     };
+  }, [searchTimeout]);
 
-    fetchData();
-  }, []);
-
-  const filteredData = useMemo(() => {
-    let filtered = data;
-
-    if (searchTerm) {
-      filtered = filtered.filter(podcast =>
-        Object.values(podcast).some(value =>
-          value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
+  // Handle search input change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    
+    // Clear previous timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
     }
+    
+    // Set new timeout for search
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(1);
+      fetchEbooks(1, itemsPerPage, value || undefined);
+    }, 300);
+    
+    setSearchTimeout(timeoutId);
+  };
 
-    return filtered;
-  }, [searchTerm, data]);
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedData = ebooks;
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    if (page !== currentPage) {
+      setCurrentPage(page);
+      fetchEbooks(page, itemsPerPage, searchTerm || undefined);
+    }
   };
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
+    if (newItemsPerPage !== itemsPerPage) {
+      setItemsPerPage(newItemsPerPage);
+      setCurrentPage(1);
+      fetchEbooks(1, newItemsPerPage, searchTerm || undefined);
+    }
   };
 
 
   const columns = [
     {
-      key: 'image',
+      key: 'cover',
       label: 'E-book Image',
       width: '30%',
       render: (value: string) => (
@@ -75,7 +86,7 @@ export default function EbookPage() {
       ),
     },
     {
-      key: 'name',
+      key: 'title',
       label: 'Name',
       width: '30%',
       render: (value: string) => <span className="truncate block">{value}</span>,
@@ -94,6 +105,12 @@ export default function EbookPage() {
     },
   ];
 
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this ebook?')) {
+      await deleteEbook(id);
+    }
+  };
+
   const actions = [
     {
       label: 'Action',
@@ -106,8 +123,15 @@ export default function EbookPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-32 p-2">
-            <Button variant="ghost" className="w-full justify-start cursor-pointer">Delete</Button>
-            <Button variant="ghost" className="w-full justify-start text-red-500 cursor-pointer">Edit</Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-red-500 cursor-pointer"
+              onClick={() => handleDelete(row.id)}
+              disabled={loading}
+            >
+              Delete
+            </Button>
+            <Button variant="ghost" className="w-full justify-start cursor-pointer">Edit</Button>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -116,7 +140,7 @@ export default function EbookPage() {
 
   return (
     <>
-      <div className='mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between'>
+      <div className='mb-6 flex flex-col lg:flex-row sm:items-center sm:justify-between gap-4'>
         <h1 className='text-2xl font-semibold text-white'>E-book</h1>
         {/* Search on the right */}
         <div className='flex flex-col md:flex-row items-center gap-4'>
@@ -136,38 +160,47 @@ export default function EbookPage() {
               type="text"
               placeholder="Search"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="block w-full sm:w-80 pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-[#181F2A] text-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
             />
           </div>
         </div>
       </div>
 
-      <ReusableTable
-        data={paginatedData}
-        columns={columns}
-        actions={actions}
-        className="mt-4"
-      />
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-white">Loading ebooks...</span>
+        </div>
+      ) : (
+        <ReusableTable
+          data={paginatedData}
+          columns={columns}
+          actions={actions}
+          className="mt-4"
+        />
+      )}
 
-      <ReusablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        itemsPerPage={itemsPerPage}
-        totalItems={filteredData.length}
-        onPageChange={handlePageChange}
-        onItemsPerPageChange={handleItemsPerPageChange}
-        className=""
-      />
+      {!loading && (
+        <ReusablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          totalItems={totalItems}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={handleItemsPerPageChange}
+          className=""
+        />
+      )}
 
-      {/* Add Podcast Modal */}
+      {/* Add Ebook Modal */}
       <CustomReusableModal
         className='bg-[#1D1F2C] text-white border-none'
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Add New E-book"
       >
-        <EbookAdd />
+        <EbookAdd onClose={() => setIsModalOpen(false)} />
       </CustomReusableModal>
     </>
   )

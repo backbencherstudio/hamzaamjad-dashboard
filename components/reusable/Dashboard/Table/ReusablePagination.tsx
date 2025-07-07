@@ -10,7 +10,7 @@ interface ReusablePaginationProps {
     className?: string
 }
 
-const itemsPerPageOptions = [5, 10, 20, 50, 100]
+const itemsPerPageOptions = [ 5, 10, 20, 50, 100]
 
 export default function ReusablePagination({
     currentPage,
@@ -116,7 +116,7 @@ export default function ReusablePagination({
                             key={index}
                             onClick={() => typeof page === 'number' && onPageChange(page)}
                             disabled={typeof page !== 'number'}
-                            className={`px-3 cursor-pointer py-1 text-sm font-medium rounded-md transition-colors ${page === currentPage
+                            className={`px-3 cursor-pointer py-1 text-sm font-medium rounded-md transition-colors ${typeof page === 'number' && page === currentPage
                                 ? 'bg-[#3762E4] text-white shadow-sm'
                                 : typeof page === 'number'
                                     ? 'text-gray-300 hover:bg-[#3762E4] hover:text-white'
@@ -184,7 +184,7 @@ export default function ReusablePagination({
                                 key={index}
                                 onClick={() => typeof page === 'number' && onPageChange(page)}
                                 disabled={typeof page !== 'number'}
-                                className={`px-2 py-1 text-sm font-medium rounded-md transition-colors ${page === currentPage
+                                className={`px-2 py-1 text-sm font-medium rounded-md transition-colors ${typeof page === 'number' && page === currentPage
                                     ? 'bg-[#3762E4] text-white shadow-sm'
                                     : typeof page === 'number'
                                         ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
@@ -266,7 +266,7 @@ export default function ReusablePagination({
                                 key={index}
                                 onClick={() => typeof page === 'number' && onPageChange(page)}
                                 disabled={typeof page !== 'number'}
-                                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${page === currentPage
+                                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${typeof page === 'number' && page === currentPage
                                     ? 'bg-[#3762E4] text-white shadow-sm'
                                     : typeof page === 'number'
                                         ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'

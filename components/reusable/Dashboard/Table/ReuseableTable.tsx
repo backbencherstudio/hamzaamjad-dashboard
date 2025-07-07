@@ -1,4 +1,12 @@
 import React from 'react'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
 
 interface TableColumn {
     key: string
@@ -37,7 +45,6 @@ export default function ReusableTable({
     onRowClick,
     className = ""
 }: ReusableTableProps) {
-    // Use data directly (no pagination here)
     const tableData = data
 
     const renderCellContent = (column: TableColumn, row: any) => {
@@ -60,85 +67,85 @@ export default function ReusableTable({
     }
 
     return (
-        <div className={` ${className}`}>
-            {/* Table */}
-            <div className="overflow-x-auto rounded-t-lg border border-[#23293D] text-white">
-                <table className="min-w-full divide-y divide-[#23293D]  w-full">
-                    <thead className="bg-[#23293D]">
-                        <tr>
-                            {columns.map((column) => (
-                                <th
-                                    key={column.key}
-                                    scope="col"
-                                    style={{ width: column.width }}
-                                    className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider overflow-hidden"
-                                >
-                                    {column.label}
-                                </th>
-                            ))}
-                            {actions && actions.length > 0 && (
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            )}
-                        </tr>
-                    </thead>
-                    <tbody className="bg-[#1D1F2C] divide-y divide-[#23293D]">
-                        {tableData.map((row, index) => (
-                            <tr
-                                key={index}
-                                className={`capitalize ${onRowClick ? 'cursor-pointer hover:bg-[#23293D]' : ''}`}
-                                onClick={() => onRowClick?.(row)}
-                            >
+        <div className={`${className}`}>
+            <div className="rounded-t-lg border border-[#23293D] text-white">
+                <div className="overflow-x-auto">
+                    <Table className="w-full min-w-[800px] divide-y divide-[#23293D]">
+                        <TableHeader className="bg-[#23293D]">
+                            <TableRow className="hover:bg-transparent">
                                 {columns.map((column) => (
-                                    <td
+                                    <TableHead
                                         key={column.key}
+                                        scope="col"
                                         style={{ width: column.width }}
-                                        className="px-6 py-4 text-sm text-white overflow-hidden"
+                                        className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider overflow-hidden"
                                     >
-                                        <div className="truncate">
-                                            {renderCellContent(column, row)}
-                                        </div>
-                                    </td>
+                                        {column.label}
+                                    </TableHead>
                                 ))}
                                 {actions && actions.length > 0 && (
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div className="flex space-x-2">
-                                            {actions.map((action, actionIndex) => (
-                                                action.render ? (
-                                                    <React.Fragment key={actionIndex}>
-                                                        {action.render(row)}
-                                                    </React.Fragment>
-                                                ) : (
-                                                    <button
-                                                        key={actionIndex}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            action.onClick?.(row)
-                                                        }}
-                                                        className={`px-3 py-1 rounded text-xs font-medium ${action.variant === 'danger'
-                                                            ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                                                            : action.variant === 'success'
-                                                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                                                : action.variant === 'warning'
-                                                                    ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                                                                    : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                                                            } ${action.className || ''}`}
-                                                    >
-                                                        {action.label}
-                                                    </button>
-                                                )
-                                            ))}
-                                        </div>
-                                    </td>
+                                    <TableHead scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                                        Actions
+                                    </TableHead>
                                 )}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody className="bg-[#1D1F2C] divide-y divide-[#23293D]">
+                            {tableData.map((row, index) => (
+                                <TableRow
+                                    key={index}
+                                    className={`capitalize hover:bg-transparent ${onRowClick ? 'cursor-pointer' : ''}`}
+                                    onClick={() => onRowClick?.(row)}
+                                >
+                                    {columns.map((column) => (
+                                        <TableCell
+                                            key={column.key}
+                                            style={{ width: column.width }}
+                                            className="px-6 py-4 text-sm text-white overflow-hidden"
+                                        >
+                                            <div className="truncate">
+                                                {renderCellContent(column, row)}
+                                            </div>
+                                        </TableCell>
+                                    ))}
+                                    {actions && actions.length > 0 && (
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div className="flex space-x-2">
+                                                {actions.map((action, actionIndex) => (
+                                                    action.render ? (
+                                                        <React.Fragment key={actionIndex}>
+                                                            {action.render(row)}
+                                                        </React.Fragment>
+                                                    ) : (
+                                                        <button
+                                                            key={actionIndex}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                action.onClick?.(row)
+                                                            }}
+                                                            className={`px-3 py-1 rounded text-xs font-medium ${action.variant === 'danger'
+                                                                ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                                                                : action.variant === 'success'
+                                                                    ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                                                    : action.variant === 'warning'
+                                                                        ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                                                                        : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                                                                } ${action.className || ''}`}
+                                                        >
+                                                            {action.label}
+                                                        </button>
+                                                    )
+                                                ))}
+                                            </div>
+                                        </TableCell>
+                                    )}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
 
-            {/* Empty state */}
             {tableData.length === 0 && (
                 <div className="text-center py-12">
                     <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

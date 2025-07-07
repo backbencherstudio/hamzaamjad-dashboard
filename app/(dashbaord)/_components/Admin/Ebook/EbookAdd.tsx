@@ -6,9 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { useEbook } from '@/hooks/useEbook';
+import { toast } from 'react-toastify';
 
-export default function EbookAdd() {
-    const { register, handleSubmit, formState: { errors }, setValue } = useForm();
+interface EbookAddProps {
+    onClose?: () => void;
+}
+
+export default function EbookAdd({ onClose }: EbookAddProps) {
+    const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm();
+    const { createEbook, loading } = useEbook();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>();
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -17,8 +24,48 @@ export default function EbookAdd() {
     const [pdfError, setPdfError] = useState('');
     const [coverError, setCoverError] = useState('');
 
-    const onSubmit = (formData: any) => {
-        console.log(formData, pdfFile, coverFile);
+    const onSubmit = async (formData: any) => {
+        if (!pdfFile) {
+            setPdfError('PDF file is required');
+            return;
+        }
+        if (!coverFile) {
+            setCoverError('Cover image is required');
+            return;
+        }
+        if (!selectedDate) {
+            toast.error('Please select a date');
+            return;
+        }
+
+
+
+        try {
+            const ebookData = {
+                title: formData.title,
+                date: format(selectedDate, 'yyyy-MM-dd'),
+                pdf: pdfFile,
+                cover: coverFile
+            };
+
+            const success = await createEbook(ebookData);
+            if (success) {
+                // Reset form
+                reset();
+                setSelectedDate(undefined);
+                setPdfFile(null);
+                setCoverFile(null);
+                setPdfError('');
+                setCoverError('');
+                
+                // Close modal if onClose is provided
+                if (onClose) {
+                    onClose();
+                }
+            }
+        } catch (error) {
+            console.error('Error creating ebook:', error);
+        }
     }
 
     const handlePdfDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -37,11 +84,11 @@ export default function EbookAdd() {
         e.preventDefault();
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const file = e.dataTransfer.files[0];
-            if (file.size <= 5 * 1024 * 1024 && file.type.startsWith('image/')) {
+            if (file.type.startsWith('image/')) {
                 setCoverFile(file);
                 setCoverError('');
             } else {
-                setCoverError('Only image files up to 5MB are allowed');
+                setCoverError('Only image files are allowed');
             }
         }
     };
@@ -59,11 +106,11 @@ export default function EbookAdd() {
     const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            if (file.size <= 5 * 1024 * 1024 && file.type.startsWith('image/')) {
+            if (file.type.startsWith('image/')) {
                 setCoverFile(file);
                 setCoverError('');
             } else {
-                setCoverError('Only image files up to 5MB are allowed');
+                setCoverError('Only image files are allowed');
             }
         }
     };
@@ -122,9 +169,16 @@ export default function EbookAdd() {
                     onClick={() => pdfInputRef.current?.click()}
                 >
                     {pdfFile ? (
-                        <span>{pdfFile.name}</span>
+                        <div>
+                            <span>{pdfFile.name}</span>
+                            <div className="text-xs text-gray-400 mt-1">
+                                Size: {(pdfFile.size / (1024 * 1024)).toFixed(2)} MB
+                            </div>
+                        </div>
                     ) : (
-                        'Drag and drop files here'
+                        <>
+                            Drag and drop files here
+                        </>
                     )}
                     <input
                         type="file"
@@ -145,15 +199,19 @@ export default function EbookAdd() {
                     onClick={() => coverInputRef.current?.click()}
                 >
                     {coverFile ? (
-                        <img
-                            src={URL.createObjectURL(coverFile)}
-                            alt="Cover Preview"
-                            className="mx-auto h-16 w-16 object-cover rounded mb-2"
-                        />
+                        <div>
+                            <img
+                                src={URL.createObjectURL(coverFile)}
+                                alt="Cover Preview"
+                                className="mx-auto h-16 w-16 object-cover rounded mb-2"
+                            />
+                            <div className="text-xs text-gray-400">
+                                Size: {(coverFile.size / (1024 * 1024)).toFixed(2)} MB
+                            </div>
+                        </div>
                     ) : (
                         <>
                             Drag and drop files here
-                            <div className="text-xs text-gray-500 mt-1">Maximum file size is 5MB</div>
                         </>
                     )}
                     <input
@@ -168,9 +226,10 @@ export default function EbookAdd() {
             </div>
             <Button
                 type="submit"
-                className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2"
+                disabled={loading}
+                className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                Add E-book
+                {loading ? 'Adding E-book...' : 'Add E-book'}
             </Button>
         </form>
     )
