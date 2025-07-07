@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useForm } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -6,17 +6,77 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { usePodcasts } from '@/hooks/usePodcasts';
 
-export default function AddNewPodcasts() {
-    const { register, handleSubmit, formState: { errors }, setValue } = useForm();
+interface AddNewPodcastsProps {
+    podcast?: any;
+    onClose?: () => void;
+    isEdit?: boolean;
+}
+
+export default function AddNewPodcasts({ podcast, onClose, isEdit = false }: AddNewPodcastsProps) {
+    const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>();
     const [mp3File, setMp3File] = useState<File | null>(null);
     const [coverFile, setCoverFile] = useState<File | null>(null);
+    const [existingMp3, setExistingMp3] = useState<string>('');
+    const [existingCover, setExistingCover] = useState<string>('');
     const mp3InputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
+    const { createPodcast, updatePodcast, loading } = usePodcasts();
 
-    const onSubmit = (formData: any) => {
-        console.log(formData);
+    // Initialize form with podcast data if editing
+    useEffect(() => {
+        if (podcast && isEdit) {
+            setValue('title', podcast.title);
+            setValue('hostName', podcast.hostName);
+            if (podcast.date) {
+                const date = new Date(podcast.date);
+                setSelectedDate(date);
+                setValue('date', format(date, 'yyyy-MM-dd'));
+            }
+            // Set existing files for display
+            if (podcast.mp3) {
+                setExistingMp3(podcast.mp3);
+            }
+            if (podcast.cover) {
+                setExistingCover(podcast.cover);
+            }
+        }
+    }, [podcast, isEdit, setValue]);
+
+    const onSubmit = async (formData: any) => {
+        const data = new FormData();
+        data.append('title', formData.title);
+        data.append('hostName', formData.hostName);
+        data.append('date', formData.date);
+        
+        if (mp3File) {
+            data.append('mp3', mp3File);
+        }
+        if (coverFile) {
+            data.append('cover', coverFile);
+        }
+
+        try {
+            if (isEdit && (podcast?.id || podcast?._id)) {
+                const podcastId = podcast.id || podcast._id;
+                await updatePodcast(podcastId, data);
+            } else {
+                await createPodcast(data);
+            }
+            
+            // Reset form and close modal
+            reset();
+            setSelectedDate(undefined);
+            setMp3File(null);
+            setCoverFile(null);
+            setExistingMp3('');
+            setExistingCover('');
+            onClose?.();
+        } catch (error) {
+            console.error('Error submitting form:', error);
+        }
     }
 
     const handleMp3Drop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -108,6 +168,11 @@ export default function AddNewPodcasts() {
                 >
                     {mp3File ? (
                         <span>{mp3File.name}</span>
+                    ) : existingMp3 ? (
+                        <div>
+                            <span className="block mb-2">Current file: {existingMp3.split('/').pop()}</span>
+                            <span className="text-sm text-gray-400">Click to upload new file</span>
+                        </div>
                     ) : (
                         'Drag and drop files here or click to select'
                     )}
@@ -134,6 +199,15 @@ export default function AddNewPodcasts() {
                             alt="Cover Preview"
                             className="mx-auto h-16 w-16 object-cover rounded mb-2"
                         />
+                    ) : existingCover ? (
+                        <div>
+                            <img
+                                src={existingCover}
+                                alt="Current Cover"
+                                className="mx-auto h-16 w-16 object-cover rounded mb-2"
+                            />
+                            <span className="text-sm text-gray-400">Click to upload new image</span>
+                        </div>
                     ) : (
                         'Drag and drop files here or click to select'
                     )}
@@ -148,9 +222,10 @@ export default function AddNewPodcasts() {
             </div>
             <Button
                 type="submit"
-                className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2"
+                disabled={loading}
+                className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                Add Podcasts
+                {loading ? 'Processing...' : (isEdit ? 'Update Podcast' : 'Add Podcast')}
             </Button>
         </form>
     )

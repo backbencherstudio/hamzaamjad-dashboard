@@ -1,69 +1,130 @@
 'use client'
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import ReusableTable from '@/components/reusable/Dashboard/Table/ReuseableTable'
 import ReusablePagination from '@/components/reusable/Dashboard/Table/ReusablePagination'
-import { toast } from 'react-toastify'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { MoreVertical } from 'lucide-react'
 import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReusableModal'
 import AddNewPodcasts from '../_components/Admin/AddNewPodcasts/AddNewPodcasts'
+import { usePodcasts } from '@/hooks/usePodcasts'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 
 export default function PodcastsPage() {
-    const [data, setData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const searchTimeout = useRef<NodeJS.Timeout | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingPodcast, setEditingPodcast] = useState<any>(null);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [hasInitialized, setHasInitialized] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedPodcast, setSelectedPodcast] = useState<any>(null);
+    
+    const { 
+        podcasts, 
+        loading, 
+        deletePodcast, 
+        fetchPodcasts, 
+        currentPage, 
+        totalPages, 
+        totalItems, 
+        itemsPerPage 
+    } = usePodcasts();
 
-    // Fetch data from JSON file
+    // Clean up timeout on unmount
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('/data/podcasts.json');
-                const jsonData = await response.json();
-                setData(jsonData);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error('Failed to load podcasts data');
-            }
+        return () => {
+            if (searchTimeout.current) clearTimeout(searchTimeout.current);
         };
-
-        fetchData();
     }, []);
 
-    const filteredData = useMemo(() => {
-        let filtered = data;
-
-        if (searchTerm) {
-            filtered = filtered.filter(podcast =>
-                Object.values(podcast).some(value =>
-                    value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-                )
-            );
+    // Fetch data only once when component mounts
+    useEffect(() => {
+        if (!hasInitialized) {
+            fetchPodcasts();
+            setHasInitialized(true);
         }
+    }, [fetchPodcasts, hasInitialized]);
 
-        return filtered;
-    }, [searchTerm, data]);
-
-    // Pagination logic
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
     const handlePageChange = (page: number) => {
-        setCurrentPage(page);
+        fetchPodcasts(page, itemsPerPage, searchTerm);
     };
 
     const handleItemsPerPageChange = (newItemsPerPage: number) => {
-        setItemsPerPage(newItemsPerPage);
-        setCurrentPage(1);
+        fetchPodcasts(1, newItemsPerPage, searchTerm);
     };
 
+    // Debounced search handler using useRef
+    const handleSearchChange = (value: string) => {
+        setSearchTerm(value);
+        if (searchTimeout.current) {
+            clearTimeout(searchTimeout.current);
+        }
+        searchTimeout.current = setTimeout(() => {
+            fetchPodcasts(1, itemsPerPage, value || undefined);
+        }, 300);
+    };
+
+    const handleEdit = (podcast: any) => {
+        setEditingPodcast(podcast);
+        setIsEditMode(true);
+        setIsModalOpen(true);
+    };
+
+    const handleDelete = (podcast: any) => {
+        setSelectedPodcast(podcast);
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (selectedPodcast) {
+            try {
+                await deletePodcast(selectedPodcast.id || selectedPodcast._id);
+                setDeleteDialogOpen(false);
+                setSelectedPodcast(null);
+            } catch (error) {
+                console.error('Error deleting podcast:', error);
+            }
+        }
+    };
+
+    const cancelAction = () => {
+        setDeleteDialogOpen(false);
+        setSelectedPodcast(null);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingPodcast(null);
+        setIsEditMode(false);
+    };
+
+    const handleAddNew = () => {
+        setEditingPodcast(null);
+        setIsEditMode(false);
+        setIsModalOpen(true);
+    };
+
+    // Handle successful form submission
+    const handleFormSuccess = useCallback(() => {
+        handleCloseModal();
+        // Force refresh the data
+        setTimeout(() => {
+            fetchPodcasts(currentPage, itemsPerPage, searchTerm);
+        }, 100);
+    }, [fetchPodcasts, currentPage, itemsPerPage, searchTerm]);
 
     const columns = [
         {
-            key: 'image',
+            key: 'cover',
             label: 'Podcast Image',
             width: '15%',
             render: (value: string) => (
@@ -87,10 +148,19 @@ export default function PodcastsPage() {
             render: (value: string) => <span className="truncate block">{value}</span>,
         },
         {
-            key: 'time',
-            label: 'Time',
+            key: 'mp3',
+            label: 'Audio File',
             width: '20%',
-            render: (value: string) => <span>{value}</span>,
+            render: (value: string) => (
+                value ? (
+                    <audio controls className="w-full">
+                        <source src={value} type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                    </audio>
+                ) : (
+                    <span>-</span>
+                )
+            ),
         },
         {
             key: 'date',
@@ -119,8 +189,20 @@ export default function PodcastsPage() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-32 p-2">
-                        <Button variant="ghost" className="w-full justify-start cursor-pointer">Delete</Button>
-                        <Button variant="ghost" className="w-full justify-start text-red-500 cursor-pointer">Edit</Button>
+                        <Button 
+                            variant="ghost" 
+                            className="w-full justify-start cursor-pointer"
+                            onClick={() => handleEdit(row)}
+                        >
+                            Edit
+                        </Button>
+                        <Button 
+                            variant="ghost" 
+                            className="w-full justify-start text-red-500 cursor-pointer"
+                            onClick={() => handleDelete(row)}
+                        >
+                            Delete
+                        </Button>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
@@ -132,10 +214,10 @@ export default function PodcastsPage() {
             <div className='mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between'>
                 <h1 className='text-2xl font-semibold text-white'>Podcasts</h1>
                 {/* Search on the right */}
-                <div className='flex flex-col md:flex-row items-center gap-4'>
+                <div className='flex flex-col lg:flex-row items-center gap-4'>
                     <button
                         className="bg-blue-600 cursor-pointer transition-all duration-300 text-sm hover:bg-blue-700 text-white font-semibold py-2 px-4  rounded-lg shadow ml-auto sm:ml-0 mt-4 sm:mt-0"
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={handleAddNew}
                     >
                         + Add Podcasts
                     </button>
@@ -149,39 +231,72 @@ export default function PodcastsPage() {
                             type="text"
                             placeholder="Search"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => handleSearchChange(e.target.value)}
                             className="block w-full sm:w-80 pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-[#181F2A] text-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
                         />
                     </div>
                 </div>
             </div>
 
-            <ReusableTable
-                data={paginatedData}
-                columns={columns}
-                actions={actions}
-                className="mt-4"
-            />
+            {loading ? (
+                <div className="flex justify-center items-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-white">Loading podcasts...</span>
+                </div>
+            ) : (
+                <>
+                    <ReusableTable
+                        data={podcasts}
+                        columns={columns}
+                        actions={actions}
+                        className="mt-4"
+                    />
 
-            <ReusablePagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                itemsPerPage={itemsPerPage}
-                totalItems={filteredData.length}
-                onPageChange={handlePageChange}
-                onItemsPerPageChange={handleItemsPerPageChange}
-                className=""
-            />
+                    <ReusablePagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        itemsPerPage={itemsPerPage}
+                        totalItems={totalItems}
+                        onPageChange={handlePageChange}
+                        onItemsPerPageChange={handleItemsPerPageChange}
+                        className=""
+                    />
+                </>
+            )}
 
-            {/* Add Podcast Modal */}
+            {/* Add/Edit Podcast Modal */}
             <CustomReusableModal
                 className='bg-[#1D1F2C] text-white border-none'
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title="Add New Podcasts"
+                onClose={handleFormSuccess}
+                title={isEditMode ? "Edit Podcast" : "Add New Podcasts"}
             >
-                <AddNewPodcasts />
+                <AddNewPodcasts 
+                    podcast={editingPodcast}
+                    onClose={handleFormSuccess}
+                    isEdit={isEditMode}
+                />
             </CustomReusableModal>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent className="bg-[#1D1F2C] text-white border border-[#23293D]">
+                    <DialogHeader>
+                        <DialogTitle>Delete Podcast?</DialogTitle>
+                        <DialogDescription className="text-gray-300">
+                            Are you sure you want to delete {selectedPodcast?.title}? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={cancelAction} className="border-[#23293D] cursor-pointer text-black">
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={confirmDelete} disabled={loading} className='cursor-pointer'>
+                            {loading ? 'Deleting...' : 'Delete'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }
