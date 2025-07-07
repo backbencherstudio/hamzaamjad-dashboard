@@ -3,11 +3,20 @@ import { Label } from '@/components/ui/label'
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { useForm } from 'react-hook-form';
+import { useInstructorContext } from '@/hooks/InstructorContext';
 
-export default function AddInstructor() {
-    const { register, handleSubmit, formState: { errors } } = useForm();
-    const onSubmit = (data: any) => {
-        console.log(data);
+interface AddInstructorProps {
+    onSuccess?: () => void;
+}
+
+export default function AddInstructor({ onSuccess }: AddInstructorProps) {
+    const { register, handleSubmit, formState: { errors }, reset } = useForm();
+    const { addInstructor, loading } = useInstructorContext();
+
+    const onSubmit = async (data: any) => {
+        await addInstructor(data);
+        reset();
+        if (onSuccess) onSuccess();
     }
     return (
         <form
@@ -50,8 +59,9 @@ export default function AddInstructor() {
             <Button
                 type="submit"
                 className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2"
+                disabled={loading}
             >
-                Add Instructor
+                {loading ? 'Adding...' : 'Add Instructor'}
             </Button>
         </form >
     )

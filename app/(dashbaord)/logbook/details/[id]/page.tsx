@@ -185,7 +185,7 @@ export default function LogbookDetailsPage() {
         <div>
             {/* Delete Confirmation Dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent>
+                <DialogContent className="bg-[#1D1F2C] text-white border border-[#23293D]">
                     <DialogHeader>
                         <DialogTitle>Delete Logbook Entry?</DialogTitle>
                         <DialogDescription>
@@ -193,7 +193,7 @@ export default function LogbookDetailsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={cancelDelete}>
+                        <Button variant="outline" onClick={cancelDelete} className='text-black'>
                             Cancel
                         </Button>
                         <Button variant="destructive" onClick={confirmDelete}>

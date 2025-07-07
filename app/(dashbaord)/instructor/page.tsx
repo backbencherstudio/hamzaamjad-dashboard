@@ -8,92 +8,173 @@ import { Button } from '@/components/ui/button'
 import { MoreVertical } from 'lucide-react'
 import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReusableModal'
 import AddInstructor from '../_components/Admin/AddInstructor/AddInstructor'
+import { InstructorProvider, useInstructorContext } from '@/hooks/InstructorContext'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 
-export default function ManageBookings() {
-    const [data, setData] = useState([]);
+function InstructorPageContent() {
+    const {
+        instructors,
+        loading,
+        page,
+        setPage,
+        limit,
+        setLimit,
+        total,
+        search,
+        setSearch,
+        type,
+        setType,
+        deleteInstructor,
+        activeInstructor,
+        deactiveInstructor,
+        fetchInstructors,
+    } = useInstructorContext();
     const [activeTab, setActiveTab] = useState('all');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+    
+    // Confirmation dialog states
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [activeDialogOpen, setActiveDialogOpen] = useState(false);
+    const [deactiveDialogOpen, setDeactiveDialogOpen] = useState(false);
+    const [selectedInstructor, setSelectedInstructor] = useState<any>(null);
 
-    // Fetch data from JSON file
+    // Cleanup timeout on unmount
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('/data/Instructor.json');
-                const jsonData = await response.json();
-                setData(jsonData);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error('Failed to load bookings data');
+        return () => {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
             }
         };
+    }, [searchTimeout]);
 
-        fetchData();
-    }, []);
+    // Debounced search handler
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
 
-    // Define tabs with counts
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+
+        const timeoutId = setTimeout(() => {
+            setPage(1);
+            fetchInstructors(1, limit, value || undefined, type);
+        }, 300);
+
+        setSearchTimeout(timeoutId);
+    };
+
+    // Confirmation handlers
+    const handleDeleteClick = (instructor: any) => {
+        setSelectedInstructor(instructor);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleActiveClick = (instructor: any) => {
+        setSelectedInstructor(instructor);
+        setActiveDialogOpen(true);
+    };
+
+    const handleDeactiveClick = (instructor: any) => {
+        setSelectedInstructor(instructor);
+        setDeactiveDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (selectedInstructor) {
+            await deleteInstructor(selectedInstructor._id);
+            setDeleteDialogOpen(false);
+            setSelectedInstructor(null);
+        }
+    };
+
+    const confirmActive = async () => {
+        if (selectedInstructor) {
+            await activeInstructor(selectedInstructor._id);
+            setActiveDialogOpen(false);
+            setSelectedInstructor(null);
+        }
+    };
+
+    const confirmDeactive = async () => {
+        if (selectedInstructor) {
+            await deactiveInstructor(selectedInstructor._id);
+            setDeactiveDialogOpen(false);
+            setSelectedInstructor(null);
+        }
+    };
+
+    const cancelAction = () => {
+        setDeleteDialogOpen(false);
+        setActiveDialogOpen(false);
+        setDeactiveDialogOpen(false);
+        setSelectedInstructor(null);
+    };
+
+    // Tabs with counts
     const tabs = [
         {
             key: 'all',
             label: 'All',
-            count: data.length
+            count: total
         },
         {
             key: 'active',
             label: 'Active',
-            count: data.filter(booking => booking.status.toLowerCase() === 'active').length
+            count: instructors.filter(booking => booking.status?.toLowerCase() === 'active').length
         },
         {
             key: 'deactivate',
             label: 'Deactivate',
-            count: data.filter(booking => booking.status.toLowerCase() !== 'active').length
+            count: instructors.filter(booking => booking.status?.toLowerCase() !== 'active').length
         }
     ];
 
-    // Filter data based on active tab and search
+    // Filtered data for tab
     const filteredData = useMemo(() => {
-        let filtered = data;
-
-        // Filter by tab
+        let filtered = instructors;
         if (activeTab !== 'all') {
             if (activeTab === 'active') {
-                filtered = filtered.filter(booking => booking.status.toLowerCase() === 'active');
+                filtered = filtered.filter(booking => booking.status?.toLowerCase() === 'active');
             } else if (activeTab === 'deactivate') {
-                filtered = filtered.filter(booking => booking.status.toLowerCase() !== 'active');
+                filtered = filtered.filter(booking => booking.status?.toLowerCase() !== 'active');
             }
         }
-
-        // Filter by search term
-        if (searchTerm) {
-            filtered = filtered.filter(booking =>
-                Object.values(booking).some(value =>
-                    value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-                )
-            );
-        }
-
         return filtered;
-    }, [activeTab, searchTerm, data]);
+    }, [activeTab, instructors]);
 
     // Pagination logic
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const paginatedData = filteredData.slice(startIndex, startIndex + limit);
 
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
+    const handlePageChange = (p: number) => {
+        setPage(p);
+        fetchInstructors(p, limit, search || undefined, type);
     };
-
-    const handleItemsPerPageChange = (newItemsPerPage: number) => {
-        setItemsPerPage(newItemsPerPage);
-        setCurrentPage(1);
+    
+    const handleItemsPerPageChange = (l: number) => { 
+        setLimit(l); 
+        setPage(1);
+        fetchInstructors(1, l, search || undefined, type);
     };
-
+    
     const handleTabChange = (tabKey: string) => {
         setActiveTab(tabKey);
-        setCurrentPage(1);
+        setPage(1);
+        let newType = '';
+        if (tabKey === 'active') newType = 'ACTIVE';
+        else if (tabKey === 'deactivate') newType = 'DEACTIVE';
+        
+        setType(newType);
+        fetchInstructors(1, limit, search || undefined, newType);
     };
 
     const columns = [
@@ -109,13 +190,13 @@ export default function ManageBookings() {
             key: 'student',
             label: 'Student',
             width: '23%',
-            render: (value: string[] | string) => {
-                let students = Array.isArray(value) ? value.join(', ') : value;
-                // Truncate if too long
-                if (students && students.length > 30) {
-                    students = students.slice(0, 27) + '...';
+            render: (value: any) => {
+                if (Array.isArray(value)) {
+                    // Show names, or fallback to email/license
+                    const names = value.map((v: any) => v.name || v.email || '').filter(Boolean).join(', ');
+                    return <span className="truncate block">{names || '-'}</span>;
                 }
-                return <span className="truncate block">{students}</span>;
+                return <span className="truncate block">{value || '-'}</span>;
             }
         },
         {
@@ -139,11 +220,11 @@ export default function ManageBookings() {
             label: 'Status',
             width: '10%',
             render: (value: string) => (
-                <span className={`inline-flex items-center justify-center w-20 px-3 py-1 rounded text-xs font-medium border ${value.toLowerCase() === 'active'
+                <span className={`inline-flex items-center justify-center w-20 px-3 py-1 rounded text-xs font-medium border ${value?.toLowerCase() === 'active'
                     ? 'bg-green-900/10 text-green-400 border-green-700'
                     : 'bg-red-900/10 text-red-400 border-red-700'
                     }`}>
-                    {value.toLowerCase() === 'active' ? 'Active' : 'Deactivate'}
+                    {value?.toLowerCase() === 'active' ? 'Active' : 'Deactivate'}
                 </span>
             )
         },
@@ -161,8 +242,27 @@ export default function ManageBookings() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-32 p-2">
-                        <Button variant="ghost" className="w-full justify-start cursor-pointer">Active</Button>
-                        <Button variant="ghost" className="w-full justify-start text-red-500 cursor-pointer">Deactivate</Button>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start cursor-pointer"
+                            onClick={() => handleActiveClick(row)}
+                        >
+                            Active
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start text-blue-500 cursor-pointer"
+                            onClick={() => handleDeactiveClick(row)}
+                        >
+                            Deactivate
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start text-red-500 cursor-pointer"
+                            onClick={() => handleDeleteClick(row)}
+                        >
+                            Delete
+                        </Button>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
@@ -174,7 +274,6 @@ export default function ManageBookings() {
             <div className='mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between'>
                 <h1 className='text-2xl font-semibold text-white'>All Instructor</h1>
             </div>
-
             {/* Tabs and Search */}
             <div className="flex flex-col gap-4 xl:flex-row justify-between items-center mb-4">
                 {/* Tabs on the left */}
@@ -192,7 +291,6 @@ export default function ManageBookings() {
                         </button>
                     ))}
                 </nav>
-
                 {/* Search on the right */}
                 <div className='flex flex-col md:flex-row items-center gap-4'>
                     <button
@@ -210,31 +308,28 @@ export default function ManageBookings() {
                         <input
                             type="text"
                             placeholder="Search"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            value={search}
+                            onChange={(e) => handleSearchChange(e.target.value)}
                             className="block w-full sm:w-80 pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-[#181F2A] text-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
                         />
                     </div>
                 </div>
             </div>
-
             <ReusableTable
                 data={paginatedData}
                 columns={columns}
                 actions={actions}
                 className="mt-4"
             />
-
             <ReusablePagination
-                currentPage={currentPage}
+                currentPage={page}
                 totalPages={totalPages}
-                itemsPerPage={itemsPerPage}
+                itemsPerPage={limit}
                 totalItems={filteredData.length}
                 onPageChange={handlePageChange}
                 onItemsPerPageChange={handleItemsPerPageChange}
                 className=""
             />
-
             {/* Add Instructor Modal */}
             <CustomReusableModal
                 className='bg-[#1D1F2C] text-white'
@@ -242,11 +337,79 @@ export default function ManageBookings() {
                 onClose={() => setIsModalOpen(false)}
                 title="Add New Instructor"
             >
-                <AddInstructor />
+                <AddInstructor onSuccess={() => setIsModalOpen(false)} />
             </CustomReusableModal>
 
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent className="bg-[#1D1F2C] text-white border border-[#23293D]">
+                    <DialogHeader>
+                        <DialogTitle>Delete Instructor?</DialogTitle>
+                        <DialogDescription className="text-gray-300">
+                            Are you sure you want to delete {selectedInstructor?.name}? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={cancelAction} className="border-[#23293D] cursor-pointer text-black ">
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={confirmDelete} disabled={loading} className='cursor-pointer'>
+                            {loading ? 'Deleting...' : 'Delete'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Active Confirmation Dialog */}
+            <Dialog open={activeDialogOpen} onOpenChange={setActiveDialogOpen}>
+                <DialogContent className="bg-[#1D1F2C] text-white border border-[#23293D]">
+                    <DialogHeader>
+                        <DialogTitle>Activate Instructor?</DialogTitle>
+                        <DialogDescription className="text-gray-300">
+                            Are you sure you want to activate {selectedInstructor?.name}?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={cancelAction} className=" text-white cursor-pointer">
+                            Cancel
+                        </Button>
+                        <Button onClick={confirmActive} disabled={loading} className="bg-green-600 hover:bg-green-700 cursor-pointer">
+                            {loading ? 'Activating...' : 'Activate'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Deactive Confirmation Dialog */}
+            <Dialog open={deactiveDialogOpen} onOpenChange={setDeactiveDialogOpen}>
+                <DialogContent className="bg-[#1D1F2C] text-white border border-[#23293D]">
+                    <DialogHeader>
+                        <DialogTitle>Deactivate Instructor?</DialogTitle>
+                        <DialogDescription className="text-gray-300">
+                            Are you sure you want to deactivate {selectedInstructor?.name}?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={cancelAction} className="border-[#23293D] cursor-pointer text-black">
+                            Cancel
+                        </Button>
+                        <Button onClick={confirmDeactive} disabled={loading} className="bg-orange-600 hover:bg-orange-700 cursor-pointer">
+                            {loading ? 'Deactivating...' : 'Deactivate'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
-    )
+    );
 }
+
+export default function InstructorPage() {
+    return (
+        <InstructorProvider>
+            <InstructorPageContent />
+        </InstructorProvider>
+    );
+}
+
 
 

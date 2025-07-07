@@ -242,7 +242,7 @@ export default function EbookPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-[#1D1F2C] text-white border border-[#23293D]">
           <DialogHeader>
             <DialogTitle>Delete E-book?</DialogTitle>
             <DialogDescription>
@@ -250,7 +250,7 @@ export default function EbookPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={cancelDelete}>
+            <Button variant="outline" onClick={cancelDelete} className='text-black'>
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
