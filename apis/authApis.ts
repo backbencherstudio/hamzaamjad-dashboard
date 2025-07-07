@@ -96,3 +96,14 @@ export const resendTokenApi = async (data: any) => {
         throw new Error(error.response.data.message);
     }
 }
+
+
+// password update api
+export const passwordUpdateApi = async (data: any) => {
+    try {
+        const response = await axiosClient.patch('/users/update-password', data);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response.data.message);
+    }
+}

@@ -1,12 +1,13 @@
 "use client"
 import React, { useState, useRef } from 'react'
 import { useForm } from "react-hook-form"
-import { Eye, EyeOff, Edit2, User, Lock, Upload, ImageDownIcon } from "lucide-react"
+import {  Edit2, User, Lock, ImageDownIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import UpdatePassword from '../_components/Admin/Profile/UpdatePassword'
 
 // Types
 interface ProfileFormData {
@@ -14,11 +15,7 @@ interface ProfileFormData {
     email: string
 }
 
-interface PasswordFormData {
-    oldPassword: string
-    newPassword: string
-    confirmPassword: string
-}
+
 
 interface EditableInputProps {
     id: string
@@ -107,53 +104,7 @@ const EditableInput = ({
     </div>
 )
 
-const PasswordInput = ({
-    id,
-    label,
-    placeholder,
-    showPassword,
-    onTogglePassword,
-    register,
-    errors,
-    validation
-}: {
-    id: string
-    label: string
-    placeholder: string
-    showPassword: boolean
-    onTogglePassword: () => void
-    register: any
-    errors: any
-    validation: any
-}) => (
-    <div className="space-y-2">
-        <Label htmlFor={id}>{label}</Label>
-        <div className="relative">
-            <Input
-                id={id}
-                type={showPassword ? "text" : "password"}
-                placeholder={placeholder}
-                {...register(id, validation)}
-            />
-            <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
-                onClick={onTogglePassword}
-            >
-                {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                ) : (
-                    <Eye className="h-4 w-4" />
-                )}
-            </Button>
-        </div>
-        {errors[id] && (
-            <p className="text-sm text-red-500">{errors[id].message}</p>
-        )}
-    </div>
-)
+
 
 const TabButton = ({
     isActive,
@@ -183,9 +134,6 @@ const TabButton = ({
 export default function AdminProfile() {
     // State
     const [activeTab, setActiveTab] = useState('profile')
-    const [showOldPassword, setShowOldPassword] = useState(false)
-    const [showNewPassword, setShowNewPassword] = useState(false)
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [profileImage, setProfileImage] = useState<string>("/api/placeholder/96/96")
     const [editingField, setEditingField] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -198,13 +146,7 @@ export default function AdminProfile() {
         },
     })
 
-    const passwordForm = useForm<PasswordFormData>({
-        defaultValues: {
-            oldPassword: "",
-            newPassword: "",
-            confirmPassword: "",
-        },
-    })
+ 
 
     // Handlers
     const handleImageClick = () => {
@@ -240,16 +182,7 @@ export default function AdminProfile() {
         console.log("Profile updated:", data)
     }
 
-    const onPasswordSubmit = (data: PasswordFormData) => {
-        if (data.newPassword !== data.confirmPassword) {
-            passwordForm.setError("confirmPassword", {
-                type: "manual",
-                message: "Passwords don't match"
-            })
-            return
-        }
-        console.log("Password updated:", data)
-    }
+   
 
     // Validation rules
     const profileValidation = {
@@ -358,54 +291,7 @@ export default function AdminProfile() {
                     )}
 
                     {activeTab === 'password' && (
-                        <Card className="shadow-sm border-none">
-                            <CardHeader className="bg-[#23293D] text-white rounded-t-lg p-5">
-                                <CardTitle className="text-2xl">Password</CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6 mt-[-25px] rounded-b-lg bg-[#1D1F2C] text-white">
-                                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6">
-                                    <PasswordInput
-                                        id="oldPassword"
-                                        label="Old Password"
-                                        placeholder="Enter your old password"
-                                        showPassword={showOldPassword}
-                                        onTogglePassword={() => setShowOldPassword(!showOldPassword)}
-                                        register={passwordForm.register}
-                                        errors={passwordForm.formState.errors}
-                                        validation={passwordValidation}
-                                    />
-
-                                    <PasswordInput
-                                        id="newPassword"
-                                        label="New Password"
-                                        placeholder="New Password"
-                                        showPassword={showNewPassword}
-                                        onTogglePassword={() => setShowNewPassword(!showNewPassword)}
-                                        register={passwordForm.register}
-                                        errors={passwordForm.formState.errors}
-                                        validation={passwordValidation}
-                                    />
-
-                                    <PasswordInput
-                                        id="confirmPassword"
-                                        label="Confirm Password"
-                                        placeholder="Conform Password"
-                                        showPassword={showConfirmPassword}
-                                        onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        register={passwordForm.register}
-                                        errors={passwordForm.formState.errors}
-                                        validation={passwordValidation}
-                                    />
-
-                                    <Button
-                                        type="submit"
-                                        className="w-full cursor-pointer py-5 transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white rounded-lg"
-                                    >
-                                        Save Change
-                                    </Button>
-                                </form>
-                            </CardContent>
-                        </Card>
+                        <UpdatePassword />
                     )}
                 </div>
             </div>
