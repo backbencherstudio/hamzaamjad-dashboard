@@ -107,3 +107,18 @@ export const passwordUpdateApi = async (data: any) => {
         throw new Error(error.response.data.message);
     }
 }
+
+
+// update user api only name and image
+export const updateUserApi = async (data: any) => {
+    try {
+        let config = {};
+        if (typeof FormData !== 'undefined' && data instanceof FormData) {
+            config = { headers: { 'Content-Type': 'multipart/form-data' } };
+        }
+        const response = await axiosClient.patch('/users/update-user', data, config);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response.data.message);
+    }
+}

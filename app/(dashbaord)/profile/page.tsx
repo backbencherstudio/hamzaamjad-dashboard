@@ -1,13 +1,15 @@
 "use client"
 import React, { useState, useRef } from 'react'
 import { useForm } from "react-hook-form"
-import {  Edit2, User, Lock, ImageDownIcon } from "lucide-react"
+import { Edit2, User, Lock, ImageDownIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import UpdatePassword from '../_components/Admin/Profile/UpdatePassword'
+import { useAuth } from '@/hooks/useAuth'
+import { updateUserApi } from '@/apis/authApis'
 
 // Types
 interface ProfileFormData {
@@ -47,10 +49,10 @@ const ProfileImageUpload = ({
             <div className="cursor-pointer" onClick={onImageClick}>
                 <Avatar className="w-24 h-24">
                     <AvatarImage src={profileImage} alt="Profile" />
-                    <AvatarFallback>RD</AvatarFallback>
+                    <AvatarFallback>U</AvatarFallback>
                 </Avatar>
                 <div className="absolute bottom-0 right-0 w-8 h-8 bg-[#1D1F2C] rounded-full flex items-center justify-center text-white hover:bg-[#1D1F2C]/80 transition-colors">
-                    <ImageDownIcon className="h-4 w-4" />
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6 6M9 13l-6 6m6-6l6-6" /></svg>
                 </div>
             </div>
             <input
@@ -134,19 +136,34 @@ const TabButton = ({
 export default function AdminProfile() {
     // State
     const [activeTab, setActiveTab] = useState('profile')
-    const [profileImage, setProfileImage] = useState<string>("/api/placeholder/96/96")
     const [editingField, setEditingField] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    // Auth user
+    const { user, refreshUser } = useAuth();
+
+    // Profile image state: default to user.image, fallback to placeholder
+    const [profileImage, setProfileImage] = useState<string>(user?.image || "/api/placeholder/96/96");
+    const [compressedImageBlob, setCompressedImageBlob] = useState<Blob | null>(null);
 
     // Forms
     const profileForm = useForm<ProfileFormData>({
         defaultValues: {
-            name: "Robbi Darwis",
-            email: "",
+            name: user?.name || '',
+            email: user?.email || '',
         },
-    })
+    });
 
- 
+    // Update form values if user changes (e.g. after login)
+    React.useEffect(() => {
+        if (user) {
+            profileForm.reset({
+                name: user.name || '',
+                email: user.email || '',
+            });
+            setProfileImage(user.image || "/api/placeholder/96/96");
+        }
+    }, [user]);
 
     // Handlers
     const handleImageClick = () => {
@@ -154,15 +171,16 @@ export default function AdminProfile() {
     }
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]
+        const file = event.target.files?.[0];
         if (file) {
-            const reader = new FileReader()
+            setCompressedImageBlob(file); // store the original file
+            const reader = new FileReader();
             reader.onload = (e) => {
-                setProfileImage(e.target?.result as string)
-            }
-            reader.readAsDataURL(file)
+                setProfileImage(e.target?.result as string); // preview
+            };
+            reader.readAsDataURL(file);
         }
-    }
+    };
 
     const handleEditClick = (fieldName: string) => {
         setEditingField(fieldName)
@@ -178,11 +196,31 @@ export default function AdminProfile() {
         setEditingField(null)
     }
 
-    const onProfileSubmit = (data: ProfileFormData) => {
-        console.log("Profile updated:", data)
-    }
+    const onProfileSubmit = async (data: ProfileFormData) => {
+        try {
+            let payload: any = { name: data.name };
+            let isMultipart = false;
+            let formData: FormData | null = null;
+            if (compressedImageBlob) {
+                formData = new FormData();
+                formData.append('name', data.name);
+                formData.append('image', compressedImageBlob);
+                isMultipart = true;
+            }
+            if (isMultipart && formData) {
+                await updateUserApi(formData);
+            } else {
+                await updateUserApi(payload);
+            }
+            await refreshUser();
+            setCompressedImageBlob(null);
+            alert('Profile updated successfully!');
+        } catch (err: any) {
+            alert(err.message || 'Failed to update profile');
+        }
+    };
 
-   
+
 
     // Validation rules
     const profileValidation = {
@@ -202,13 +240,7 @@ export default function AdminProfile() {
         }
     }
 
-    const passwordValidation = {
-        required: "This field is required",
-        minLength: {
-            value: 8,
-            message: "Password must be at least 8 characters"
-        }
-    }
+
 
     return (
         <div className="">
@@ -245,13 +277,13 @@ export default function AdminProfile() {
                                 <CardTitle className="text-2xl">My Profile</CardTitle>
                             </CardHeader>
                             <CardContent className="p-6 mt-[-25px] rounded-b-lg bg-[#1D1F2C] text-white">
+                                {/* Image upload (optional, keep for preview) */}
                                 <ProfileImageUpload
                                     profileImage={profileImage}
                                     onImageClick={handleImageClick}
                                     onImageChange={handleImageChange}
                                     fileInputRef={fileInputRef}
                                 />
-
                                 <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
                                     <EditableInput
                                         id="name"
@@ -264,21 +296,22 @@ export default function AdminProfile() {
                                         errors={profileForm.formState.errors}
                                         validation={profileValidation.name}
                                     />
-
-                                    <EditableInput
-                                        id="email"
-                                        label="Email"
-                                        type="email"
-                                        placeholder="Enter your email"
-                                        editingField={editingField}
-                                        onEditClick={handleEditClick}
-                                        onBlur={handleFieldBlur}
-                                        register={profileForm.register}
-                                        errors={profileForm.formState.errors}
-                                        validation={profileValidation.email}
-                                    />
-
-
+                                    {/* Read-only Email Field */}
+                                    <div className="space-y-2">
+                                        <Label className='text-white' htmlFor="email">Email</Label>
+                                        <div className="relative">
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                value={user?.email || ''}
+                                                disabled={true}
+                                                className="text-white py-5 bg-[#161721] cursor-not-allowed opacity-60"
+                                            />
+                                            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+                                                Read Only
+                                            </div>
+                                        </div>
+                                    </div>
                                     <Button
                                         type="submit"
                                         className="w-full cursor-pointer py-5 transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white rounded-lg"
@@ -289,7 +322,6 @@ export default function AdminProfile() {
                             </CardContent>
                         </Card>
                     )}
-
                     {activeTab === 'password' && (
                         <UpdatePassword />
                     )}

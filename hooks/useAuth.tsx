@@ -20,6 +20,7 @@ interface AuthContextType {
     isLoading: boolean;
     login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
     logout: () => void;
+    refreshUser: () => Promise<void>;
     isAuthenticated: boolean;
     isAdmin: boolean;
 }
@@ -102,6 +103,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
     };
 
+    const refreshUser = async () => {
+        const storedToken = localStorage.getItem('token');
+        if (storedToken) {
+            await fetchUserData(storedToken);
+        }
+    };
+
     const isAuthenticated = !!token && !!user;
     const isAdmin = user?.role === 'ADMIN';
 
@@ -112,6 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isLoading,
             login,
             logout,
+            refreshUser,
             isAuthenticated,
             isAdmin
         }}>
