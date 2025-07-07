@@ -1,5 +1,4 @@
-
-import React from 'react'
+import React, { Suspense } from 'react'
 import AirIcon from '../_components/Icon/AirIcon'
 import topImg from '@/public/Image/login/top.png'
 import bottomImg from '@/public/Image/login/bottom.png'
@@ -24,7 +23,9 @@ export default function LoginPage() {
                 </div>
                 {/* right side  */}
                 <div className='w-full md:w-1/2 flex items-center justify-center '>
-                    <LoginAuth />
+                    <Suspense fallback={<div className="text-white">Loading...</div>}>
+                        <LoginAuth />
+                    </Suspense>
                 </div>
             </div>
         </div>
