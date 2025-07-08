@@ -50,10 +50,7 @@ function InstructorPageContent() {
     const [deactiveDialogOpen, setDeactiveDialogOpen] = useState(false);
     const [selectedInstructor, setSelectedInstructor] = useState<any>(null);
 
-    // Debounced search term
     const debouncedSearchTerm = useDebounce(search, 300);
-
-    // Fetch data only once when component mounts
     useEffect(() => {
         if (!hasInitialized) {
             fetchInstructors(page, limit, search, type);
@@ -61,7 +58,6 @@ function InstructorPageContent() {
         }
     }, [fetchInstructors, page, limit, search, type, hasInitialized]);
 
-    // Fetch data when debounced search term changes
     useEffect(() => {
         if (hasInitialized) {
             setPage(1);
@@ -69,7 +65,6 @@ function InstructorPageContent() {
         }
     }, [debouncedSearchTerm, hasInitialized]);
 
-    // Direct search handler (no debouncing here, useDebounce handles it)
     const handleSearchChange = (value: string) => {
         setSearch(value);
     };
@@ -195,7 +190,6 @@ function InstructorPageContent() {
             width: '23%',
             render: (value: any) => {
                 if (Array.isArray(value)) {
-                    // Show names, or fallback to email/license
                     const names = value.map((v: any) => v.name || v.email || '').filter(Boolean).join(', ');
                     return <span className="truncate block">{names || '-'}</span>;
                 }
