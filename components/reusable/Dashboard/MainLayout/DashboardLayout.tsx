@@ -5,6 +5,8 @@ import Sidebar from '../Sidebar/Sidebar';
 import Header from '../Header/Header';
 import { EbookProvider } from '@/hooks/useEbook';
 import { PodcastsProvider } from '@/hooks/usePodcasts';
+import { PilotUsersProvider } from '@/hooks/PilotUsers';
+
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -20,7 +22,8 @@ const DashboardLayout = ({ children }: LayoutProps) => {
     return (
         <EbookProvider>
             <PodcastsProvider>
-                <div className="flex h-screen">
+                <PilotUsersProvider>
+                    <div className="flex h-screen">
                     {/* Sidebar */}
                     <div
                         className={`fixed inset-y-0 left-0 z-40 md:static md:translate-x-0 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -47,6 +50,7 @@ const DashboardLayout = ({ children }: LayoutProps) => {
                         </main>
                     </div>
                 </div>
+                </PilotUsersProvider>
             </PodcastsProvider>
         </EbookProvider>
     );
