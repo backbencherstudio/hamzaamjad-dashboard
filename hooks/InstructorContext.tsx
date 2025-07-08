@@ -14,6 +14,10 @@ interface Instructor {
 interface InstructorContextType {
   instructors: Instructor[];
   loading: boolean;
+  creating: boolean;
+  deletingId: string | null;
+  activatingId: string | null;
+  deactivatingId: string | null;
   error: string | null;
   fetchInstructors: (page?: number, limit?: number, search?: string, type?: string) => Promise<void>;
   addInstructor: (data: Omit<Instructor, '_id' | 'status'>) => Promise<void>;
@@ -44,6 +48,10 @@ export const useInstructorContext = () => {
 export const InstructorProvider = ({ children }: { children: ReactNode }) => {
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [activatingId, setActivatingId] = useState<string | null>(null);
+  const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -73,7 +81,7 @@ export const InstructorProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addInstructor = async (data: Omit<Instructor, '_id' | 'status'>) => {
-    setLoading(true);
+    setCreating(true);
     setError(null);
     try {
       await addInstructorApi(data);
@@ -84,52 +92,64 @@ export const InstructorProvider = ({ children }: { children: ReactNode }) => {
       setError(err.message || 'Failed to add instructor');
       toast.error(err.message || 'Failed to add instructor');
     } finally {
-      setLoading(false);
+      setCreating(false);
     }
   };
 
   const deleteInstructor = async (id: string) => {
-    setLoading(true);
+    setDeletingId(id);
     setError(null);
     try {
       await deleteInstructorApi(id);
       toast.success('Instructor deleted successfully');
-      await fetchInstructors(page, limit, search, type);
+      // Update local state instead of refetching
+      setInstructors(prev => prev.filter(instructor => instructor._id !== id));
+      setTotal(prev => prev - 1);
     } catch (err: any) {
       setError(err.message || 'Failed to delete instructor');
       toast.error(err.message || 'Failed to delete instructor');
     } finally {
-      setLoading(false);
+      setDeletingId(null);
     }
   };
 
   const activeInstructor = async (id: string) => {
-    setLoading(true);
+    setActivatingId(id);
     setError(null);
     try {
       await activeInstructorApi(id);
       toast.success('Instructor activated successfully');
-      await fetchInstructors(page, limit, search, type);
+      // Update local state
+      setInstructors(prev => prev.map(instructor => 
+        instructor._id === id 
+          ? { ...instructor, status: 'active' }
+          : instructor
+      ));
     } catch (err: any) {
       setError(err.message || 'Failed to activate instructor');
       toast.error(err.message || 'Failed to activate instructor');
     } finally {
-      setLoading(false);
+      setActivatingId(null);
     }
   };
 
   const deactiveInstructor = async (id: string) => {
-    setLoading(true);
+    setDeactivatingId(id);
     setError(null);
     try {
       await deactiveInstructorApi(id);
       toast.success('Instructor deactivated successfully');
-      await fetchInstructors(page, limit, search, type);
+      // Update local state
+      setInstructors(prev => prev.map(instructor => 
+        instructor._id === id 
+          ? { ...instructor, status: 'deactive' }
+          : instructor
+      ));
     } catch (err: any) {
       setError(err.message || 'Failed to deactivate instructor');
       toast.error(err.message || 'Failed to deactivate instructor');
     } finally {
-      setLoading(false);
+      setDeactivatingId(null);
     }
   };
 
@@ -143,6 +163,10 @@ export const InstructorProvider = ({ children }: { children: ReactNode }) => {
       value={{
         instructors,
         loading,
+        creating,
+        deletingId,
+        activatingId,
+        deactivatingId,
         error,
         fetchInstructors,
         addInstructor,

@@ -11,7 +11,7 @@ interface AddInstructorProps {
 
 export default function AddInstructor({ onSuccess }: AddInstructorProps) {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
-    const { addInstructor, loading } = useInstructorContext();
+    const { addInstructor, creating } = useInstructorContext();
 
     const onSubmit = async (data: any) => {
         await addInstructor(data);
@@ -58,10 +58,10 @@ export default function AddInstructor({ onSuccess }: AddInstructorProps) {
             </div>
             <Button
                 type="submit"
-                className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2"
-                disabled={loading}
+                className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={creating}
             >
-                {loading ? 'Adding...' : 'Add Instructor'}
+                {creating ? 'Adding...' : 'Add Instructor'}
             </Button>
         </form >
     )

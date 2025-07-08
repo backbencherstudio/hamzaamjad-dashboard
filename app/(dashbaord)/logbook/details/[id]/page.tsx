@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import ReusableTable from '@/components/reusable/Dashboard/Table/ReuseableTable';
 import { toast } from 'react-toastify';
@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { deleteLogbookApi, getSingleLogbookApi } from '@/apis/logbookApis';
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useDebounce } from '@/hooks/useDebounce';
+import { Loader2 } from 'lucide-react';
 
 export default function LogbookDetailsPage() {
     const { id } = useParams();
@@ -19,11 +21,15 @@ export default function LogbookDetailsPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+    const [hasInitialized, setHasInitialized] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
-    const fetchData = async (page: number, limit: number, search?: string) => {
+    // Debounced search term
+    const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+    const fetchData = useCallback(async (page: number, limit: number, search?: string) => {
         if (!id) return;
         setLoading(true);
         try {
@@ -41,35 +47,32 @@ export default function LogbookDetailsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
 
+    // Fetch data only once when component mounts
     useEffect(() => {
-        return () => {
-            if (searchTimeout) {
-                clearTimeout(searchTimeout);
-            }
-        };
-    }, [searchTimeout]);
+        if (!hasInitialized) {
+            fetchData(currentPage, itemsPerPage, searchTerm);
+            setHasInitialized(true);
+        }
+    }, [fetchData, currentPage, itemsPerPage, searchTerm, hasInitialized]);
+
+    // Fetch data when debounced search term changes
+    useEffect(() => {
+        if (hasInitialized) {
+            setCurrentPage(1);
+            fetchData(1, itemsPerPage, debouncedSearchTerm || undefined);
+        }
+    }, [debouncedSearchTerm, hasInitialized]);
 
     const handleSearchChange = (value: string) => {
         setSearchTerm(value);
-
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
-
-        const timeoutId = setTimeout(() => {
-            setCurrentPage(1);
-            fetchData(1, itemsPerPage, value || undefined);
-        }, 300);
-
-        setSearchTimeout(timeoutId);
     };
 
     const handlePageChange = (page: number) => {
         if (page !== currentPage) {
             setCurrentPage(page);
-            fetchData(page, itemsPerPage, searchTerm || undefined);
+            fetchData(page, itemsPerPage, debouncedSearchTerm || undefined);
         }
     };
 
@@ -77,22 +80,22 @@ export default function LogbookDetailsPage() {
         if (newItemsPerPage !== itemsPerPage) {
             setItemsPerPage(newItemsPerPage);
             setCurrentPage(1);
-            fetchData(1, newItemsPerPage, searchTerm || undefined);
+            fetchData(1, newItemsPerPage, debouncedSearchTerm || undefined);
         }
     };
 
-    useEffect(() => {
-        fetchData(currentPage, itemsPerPage, searchTerm);
-    }, [id]);
-
-
     const handleDelete = async (id: string) => {
+        setDeletingId(id);
         try {
             await deleteLogbookApi(id);
             toast.success('Logbook deleted successfully');
-            fetchData(currentPage, itemsPerPage, searchTerm);
+            // Update local state instead of refetching entire table
+            setLogs(prev => prev.filter(log => log.id !== id));
+            setTotalItems(prev => prev - 1);
         } catch (error: any) {
             toast.error(error.message || 'Failed to delete logbook');
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -174,7 +177,20 @@ export default function LogbookDetailsPage() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem className='text-red-500 cursor-pointer' onClick={() => openDeleteDialog(row.id)}>Delete</DropdownMenuItem>
+                        <DropdownMenuItem
+                            className='text-red-500 cursor-pointer'
+                            onClick={() => openDeleteDialog(row.id)}
+                            disabled={deletingId === row.id}
+                        >
+                            {deletingId === row.id ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+
+                                </>
+                            ) : (
+                                'Delete'
+                            )}
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
@@ -196,8 +212,21 @@ export default function LogbookDetailsPage() {
                         <Button variant="outline" onClick={cancelDelete} className='text-black cursor-pointer'>
                             Cancel
                         </Button>
-                        <Button variant="destructive" onClick={confirmDelete} className='cursor-pointer'>
-                            Delete
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDelete}
+                            disabled={deletingId === deleteId}
+                            className='cursor-pointer'
+                        >
+                            {deletingId === deleteId ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+
+                                </>
+                            ) : (
+                                'Delete'
+                            )}
+
                         </Button>
                     </DialogFooter>
                 </DialogContent>

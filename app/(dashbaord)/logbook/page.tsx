@@ -1,10 +1,11 @@
 'use client'
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import ReusableTable from '@/components/reusable/Dashboard/Table/ReuseableTable'
 import ReusablePagination from '@/components/reusable/Dashboard/Table/ReusablePagination'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
 import { getLogbookApi } from '@/apis/logbookApis'
+import { useDebounce } from '@/hooks/useDebounce'
 
 export default function LogbookPage() {
     const [data, setData] = useState([]);
@@ -14,10 +15,13 @@ export default function LogbookPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+    const [hasInitialized, setHasInitialized] = useState(false);
     const router = useRouter();
 
-    const fetchData = async (page: number, limit: number, search?: string) => {
+    // Debounced search term
+    const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+    const fetchData = useCallback(async (page: number, limit: number, search?: string) => {
         setLoading(true);
         try {
             const response = await getLogbookApi(page, limit, search);
@@ -33,35 +37,32 @@ export default function LogbookPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
+    // Fetch data only once when component mounts
     useEffect(() => {
-        return () => {
-            if (searchTimeout) {
-                clearTimeout(searchTimeout);
-            }
-        };
-    }, [searchTimeout]);
+        if (!hasInitialized) {
+            fetchData(currentPage, itemsPerPage, searchTerm);
+            setHasInitialized(true);
+        }
+    }, [fetchData, currentPage, itemsPerPage, searchTerm, hasInitialized]);
+
+    // Fetch data when debounced search term changes
+    useEffect(() => {
+        if (hasInitialized) {
+            setCurrentPage(1);
+            fetchData(1, itemsPerPage, debouncedSearchTerm || undefined);
+        }
+    }, [debouncedSearchTerm, hasInitialized]);
 
     const handleSearchChange = (value: string) => {
         setSearchTerm(value);
-
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
-
-        const timeoutId = setTimeout(() => {
-            setCurrentPage(1);
-            fetchData(1, itemsPerPage, value || undefined);
-        }, 300);
-
-        setSearchTimeout(timeoutId);
     };
 
     const handlePageChange = (page: number) => {
         if (page !== currentPage) {
             setCurrentPage(page);
-            fetchData(page, itemsPerPage, searchTerm || undefined);
+            fetchData(page, itemsPerPage, debouncedSearchTerm || undefined);
         }
     };
 
@@ -69,13 +70,9 @@ export default function LogbookPage() {
         if (newItemsPerPage !== itemsPerPage) {
             setItemsPerPage(newItemsPerPage);
             setCurrentPage(1);
-            fetchData(1, newItemsPerPage, searchTerm || undefined);
+            fetchData(1, newItemsPerPage, debouncedSearchTerm || undefined);
         }
     };
-
-    useEffect(() => {
-        fetchData(currentPage, itemsPerPage, searchTerm);
-    }, []);
 
     // Transform API data to match table structure
     const transformedData = useMemo(() => {

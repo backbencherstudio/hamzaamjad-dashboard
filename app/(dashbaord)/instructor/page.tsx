@@ -1,13 +1,14 @@
 'use client'
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import ReusableTable from '@/components/reusable/Dashboard/Table/ReuseableTable'
 import ReusablePagination from '@/components/reusable/Dashboard/Table/ReusablePagination'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { MoreVertical } from 'lucide-react'
+import { MoreVertical, Loader2 } from 'lucide-react'
 import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReusableModal'
 import AddInstructor from '../_components/Admin/AddInstructor/AddInstructor'
 import { InstructorProvider, useInstructorContext } from '@/hooks/InstructorContext'
+import { useDebounce } from '@/hooks/useDebounce'
 import {
     Dialog,
     DialogContent,
@@ -21,6 +22,10 @@ function InstructorPageContent() {
     const {
         instructors,
         loading,
+        creating,
+        deletingId,
+        activatingId,
+        deactivatingId,
         page,
         setPage,
         limit,
@@ -37,7 +42,7 @@ function InstructorPageContent() {
     } = useInstructorContext();
     const [activeTab, setActiveTab] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+    const [hasInitialized, setHasInitialized] = useState(false);
     
     // Confirmation dialog states
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -45,29 +50,28 @@ function InstructorPageContent() {
     const [deactiveDialogOpen, setDeactiveDialogOpen] = useState(false);
     const [selectedInstructor, setSelectedInstructor] = useState<any>(null);
 
-    // Cleanup timeout on unmount
-    useEffect(() => {
-        return () => {
-            if (searchTimeout) {
-                clearTimeout(searchTimeout);
-            }
-        };
-    }, [searchTimeout]);
+    // Debounced search term
+    const debouncedSearchTerm = useDebounce(search, 300);
 
-    // Debounced search handler
+    // Fetch data only once when component mounts
+    useEffect(() => {
+        if (!hasInitialized) {
+            fetchInstructors(page, limit, search, type);
+            setHasInitialized(true);
+        }
+    }, [fetchInstructors, page, limit, search, type, hasInitialized]);
+
+    // Fetch data when debounced search term changes
+    useEffect(() => {
+        if (hasInitialized) {
+            setPage(1);
+            fetchInstructors(1, limit, debouncedSearchTerm || undefined, type);
+        }
+    }, [debouncedSearchTerm, hasInitialized]);
+
+    // Direct search handler (no debouncing here, useDebounce handles it)
     const handleSearchChange = (value: string) => {
         setSearch(value);
-
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
-
-        const timeoutId = setTimeout(() => {
-            setPage(1);
-            fetchInstructors(1, limit, value || undefined, type);
-        }, 300);
-
-        setSearchTimeout(timeoutId);
     };
 
     // Confirmation handlers
@@ -156,13 +160,13 @@ function InstructorPageContent() {
 
     const handlePageChange = (p: number) => {
         setPage(p);
-        fetchInstructors(p, limit, search || undefined, type);
+        fetchInstructors(p, limit, debouncedSearchTerm || undefined, type);
     };
     
     const handleItemsPerPageChange = (l: number) => { 
         setLimit(l); 
         setPage(1);
-        fetchInstructors(1, l, search || undefined, type);
+        fetchInstructors(1, l, debouncedSearchTerm || undefined, type);
     };
     
     const handleTabChange = (tabKey: string) => {
@@ -173,7 +177,7 @@ function InstructorPageContent() {
         else if (tabKey === 'deactivate') newType = 'DEACTIVE';
         
         setType(newType);
-        fetchInstructors(1, limit, search || undefined, newType);
+        fetchInstructors(1, limit, debouncedSearchTerm || undefined, newType);
     };
 
     const columns = [
@@ -246,22 +250,46 @@ function InstructorPageContent() {
                             variant="ghost"
                             className="w-full justify-start cursor-pointer"
                             onClick={() => handleActiveClick(row)}
+                            disabled={activatingId === row._id || deactivatingId === row._id || deletingId === row._id}
                         >
-                            Active
+                            {activatingId === row._id ? (
+                                <>
+                                  
+                                    Activating...
+                                </>
+                            ) : (
+                                'Active'
+                            )}
                         </Button>
                         <Button
                             variant="ghost"
                             className="w-full justify-start text-blue-500 cursor-pointer"
                             onClick={() => handleDeactiveClick(row)}
+                            disabled={activatingId === row._id || deactivatingId === row._id || deletingId === row._id}
                         >
-                            Deactivate
+                            {deactivatingId === row._id ? (
+                                <>
+                                  
+                                    Deactivating...
+                                </>
+                            ) : (
+                                'Deactivate'
+                            )}
                         </Button>
                         <Button
                             variant="ghost"
                             className="w-full justify-start text-red-500 cursor-pointer"
                             onClick={() => handleDeleteClick(row)}
+                            disabled={activatingId === row._id || deactivatingId === row._id || deletingId === row._id}
                         >
-                            Delete
+                            {deletingId === row._id ? (
+                                <>
+                                  
+                                    Deleting...
+                                </>
+                            ) : (
+                                'Delete'
+                            )}
                         </Button>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -354,8 +382,15 @@ function InstructorPageContent() {
                         <Button variant="outline" onClick={cancelAction} className="border-[#23293D] cursor-pointer text-black ">
                             Cancel
                         </Button>
-                        <Button variant="destructive" onClick={confirmDelete} disabled={loading} className='cursor-pointer'>
-                            {loading ? 'Deleting...' : 'Delete'}
+                        <Button variant="destructive" onClick={confirmDelete} disabled={deletingId === selectedInstructor?._id} className='cursor-pointer'>
+                            {deletingId === selectedInstructor?._id ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                   
+                                </>
+                            ) : (
+                                'Delete'
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -374,8 +409,15 @@ function InstructorPageContent() {
                         <Button variant="outline" onClick={cancelAction} className="border-[#23293D] cursor-pointer text-black ">
                             Cancel
                         </Button>
-                        <Button onClick={confirmActive} disabled={loading} className="bg-green-600 hover:bg-green-700 cursor-pointer">
-                            {loading ? 'Activating...' : 'Activate'}
+                        <Button onClick={confirmActive} disabled={activatingId === selectedInstructor?._id} className="bg-green-600 hover:bg-green-700 cursor-pointer">
+                            {activatingId === selectedInstructor?._id ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                  
+                                </>
+                            ) : (
+                                'Activate'
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -394,8 +436,15 @@ function InstructorPageContent() {
                         <Button variant="outline" onClick={cancelAction} className="border-[#23293D] cursor-pointer text-black">
                             Cancel
                         </Button>
-                        <Button onClick={confirmDeactive} disabled={loading} className="bg-orange-600 hover:bg-orange-700 cursor-pointer">
-                            {loading ? 'Deactivating...' : 'Deactivate'}
+                        <Button onClick={confirmDeactive} disabled={deactivatingId === selectedInstructor?._id} className="bg-orange-600 hover:bg-orange-700 cursor-pointer">
+                            {deactivatingId === selectedInstructor?._id ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    
+                                </>
+                            ) : (
+                                'Deactivate'
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
