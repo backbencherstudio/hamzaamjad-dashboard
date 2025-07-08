@@ -240,15 +240,22 @@ export default function PodcastsPage() {
                     className="mt-4"
                 />
 
-                <ReusablePagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    itemsPerPage={itemsPerPage}
-                    totalItems={totalItems}
-                    onPageChange={handlePageChange}
-                    onItemsPerPageChange={handleItemsPerPageChange}
-                    className=""
-                />
+                {
+                    loading ?
+                        <>
+                        </>
+                        :
+                        <ReusablePagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            itemsPerPage={itemsPerPage}
+                            totalItems={totalItems}
+                            onPageChange={handlePageChange}
+                            onItemsPerPageChange={handleItemsPerPageChange}
+                            className=""
+                        />
+
+                }
             </>
 
             {/* Add/Edit Podcast Modal */}
