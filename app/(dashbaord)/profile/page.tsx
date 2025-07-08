@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useRef } from 'react'
 import { useForm } from "react-hook-form"
-import { Edit2, User, Lock, ImageDownIcon } from "lucide-react"
+import { Edit2, User, Lock, ImagePlus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import UpdatePassword from '../_components/Admin/Profile/UpdatePassword'
 import { useAuth } from '@/hooks/useAuth'
 import { updateUserApi } from '@/apis/authApis'
+import { toast } from 'react-toastify'
 
 // Types
 interface ProfileFormData {
@@ -51,8 +52,8 @@ const ProfileImageUpload = ({
                     <AvatarImage src={profileImage} alt="Profile" />
                     <AvatarFallback>U</AvatarFallback>
                 </Avatar>
-                <div className="absolute bottom-0 right-0 w-8 h-8 bg-[#1D1F2C] rounded-full flex items-center justify-center text-white hover:bg-[#1D1F2C]/80 transition-colors">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6 6M9 13l-6 6m6-6l6-6" /></svg>
+                <div className="absolute bottom-0 right-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-[#1D1F2C]/80 transition-colors">
+                    <ImagePlus className="w-4 h-4" />
                 </div>
             </div>
             <input
@@ -138,6 +139,7 @@ export default function AdminProfile() {
     const [activeTab, setActiveTab] = useState('profile')
     const [editingField, setEditingField] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const [isLoading, setIsLoading] = useState(false);
 
     // Auth user
     const { user, refreshUser } = useAuth();
@@ -154,7 +156,6 @@ export default function AdminProfile() {
         },
     });
 
-    // Update form values if user changes (e.g. after login)
     React.useEffect(() => {
         if (user) {
             profileForm.reset({
@@ -173,10 +174,10 @@ export default function AdminProfile() {
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            setCompressedImageBlob(file); // store the original file
+            setCompressedImageBlob(file);
             const reader = new FileReader();
             reader.onload = (e) => {
-                setProfileImage(e.target?.result as string); // preview
+                setProfileImage(e.target?.result as string);
             };
             reader.readAsDataURL(file);
         }
@@ -197,6 +198,7 @@ export default function AdminProfile() {
     }
 
     const onProfileSubmit = async (data: ProfileFormData) => {
+        setIsLoading(true);
         try {
             let payload: any = { name: data.name };
             let isMultipart = false;
@@ -214,9 +216,11 @@ export default function AdminProfile() {
             }
             await refreshUser();
             setCompressedImageBlob(null);
-            alert('Profile updated successfully!');
+            toast.success('Profile updated successfully!');
         } catch (err: any) {
-            alert(err.message || 'Failed to update profile');
+            toast.error(err.message || 'Failed to update profile');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -315,8 +319,15 @@ export default function AdminProfile() {
                                     <Button
                                         type="submit"
                                         className="w-full cursor-pointer py-5 transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white rounded-lg"
+                                        disabled={isLoading}
                                     >
-                                        Save Change
+                                        {isLoading ? (
+                                            <span className="flex items-center justify-center gap-2">
+                                                <Loader2 className="animate-spin h-5 w-5" /> Saving...
+                                            </span>
+                                        ) : (
+                                            'Save Change'
+                                        )}
                                     </Button>
                                 </form>
                             </CardContent>

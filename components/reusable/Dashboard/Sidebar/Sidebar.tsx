@@ -40,33 +40,29 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
     const handleLogout = () => {
         router.push('/');
-        toast.success('Logout successful');
+        toast.success('Logged out successfully');
     };
-
-    const user = {
-        name: 'Admin',
-        email: 'admin@gmail.com',
-        role: 'admin',
-    }
 
 
     return (
-        <div className="w-64 h-screen bg-[#23293D] flex flex-col " >
+        <div className="w-64 h-screen bg-[#23293D] flex flex-col relative" >
             {/* Header */}
             <div className="py-5 px-3 flex justify-between items-center mt-2">
-                <div className='flex items-center gap-2'>
-                    <div className='w-7 h-7'>
+                <div className='flex flex-col md:flex-row items-center gap-2'>
+                    <div className='w-8 h-8'>
                         <Image src='/image/logo/logo.png' alt="logo" width={100} height={100} className='w-full h-full object-contain' />
                     </div>
                     <p className='text-white text-lg  uppercase'>Left seat lessons</p>
 
                 </div>
-                <button
-                    onClick={onClose}
-                    className="p-1 rounded-full cursor-pointer text-white hover:bg-gray-100 md:hidden"
-                >
-                    <IoClose className="h-6 w-6 text-white" />
-                </button>
+                <div className='absolute  right-0 '>
+                    <button
+                        onClick={onClose}
+                        className="p-1 cursor-pointer text-white hover:bg-gray-100 md:hidden border border-gray-600 rounded"
+                    >
+                        <IoClose className="text-lg text-white" />
+                    </button>
+                </div>
             </div>
 
             {/* Navigation Menu - Takes up available space */}

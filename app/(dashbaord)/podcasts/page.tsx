@@ -122,7 +122,7 @@ export default function PodcastsPage() {
             width: '15%',
             render: (value: string) => (
                 <img
-                    src={value || '/Image/logo/logo.png'}
+                    src={value}
                     alt="Podcast"
                     className="w-12 h-12 rounded object-cover"
                 />

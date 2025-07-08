@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { HiMenuAlt2 } from 'react-icons/hi'
 import { User, LogOut, ChevronDown } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -16,6 +16,7 @@ import greetingTime from "greeting-time";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image'
+import { toast } from 'react-toastify'
 
 export default function Header({ onMenuClick }: {
     onMenuClick: () => void,
@@ -42,6 +43,7 @@ export default function Header({ onMenuClick }: {
     const handleLogout = () => {
         logout();
         router.push('/login');
+        toast.success('Logged out successfully');
     };
 
     return (
