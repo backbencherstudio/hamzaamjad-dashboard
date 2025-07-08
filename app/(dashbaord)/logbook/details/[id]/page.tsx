@@ -193,10 +193,10 @@ export default function LogbookDetailsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={cancelDelete} className='text-black'>
+                        <Button variant="outline" onClick={cancelDelete} className='text-black cursor-pointer'>
                             Cancel
                         </Button>
-                        <Button variant="destructive" onClick={confirmDelete}>
+                        <Button variant="destructive" onClick={confirmDelete} className='cursor-pointer'>
                             Delete
                         </Button>
                     </DialogFooter>
@@ -223,6 +223,7 @@ export default function LogbookDetailsPage() {
                 data={transformedData}
                 columns={columns}
                 actions={actions}
+                loading={loading}
                 className="mt-4"
             />
             <ReusablePagination

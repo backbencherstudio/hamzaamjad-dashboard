@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, createContext, useContext, ReactNode } from 'react';
 import { createPortcustsApi, getAllPortcustsApi, updatePortcustsApi, deletePortcustsApi } from '@/apis/portcustsApis';
 import { toast } from 'react-toastify';
 
@@ -74,9 +74,7 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
             }
             
         } catch (error: any) {
-            console.error('Error fetching podcasts:', error);
             toast.error(error.message || 'Failed to fetch podcasts');
-            // Set empty array on error to prevent undefined issues
             setPodcasts([]);
         } finally {
             setLoading(false);
@@ -88,7 +86,6 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
         try {
             await createPortcustsApi(data);
             toast.success('Podcast created successfully');
-            // Refresh with current state
             await fetchPodcasts(currentPage, itemsPerPage, currentSearch);
         } catch (error: any) {
             toast.error(error.message || 'Failed to create podcast');
@@ -102,7 +99,6 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
         try {
             await updatePortcustsApi(id, data);
             toast.success('Podcast updated successfully');
-            // Refresh with current state immediately
             await fetchPodcasts(currentPage, itemsPerPage, currentSearch);
         } catch (error: any) {
             toast.error(error.message || 'Failed to update podcast');
@@ -116,7 +112,6 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
         try {
             await deletePortcustsApi(id);
             toast.success('Podcast deleted successfully');
-            // Refresh with current state
             await fetchPodcasts(currentPage, itemsPerPage, currentSearch);
         } catch (error: any) {
             toast.error(error.message || 'Failed to delete podcast');
@@ -125,8 +120,6 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
         }
     };
 
-    // Removed automatic useEffect to prevent multiple renders
-    // Data will be fetched manually when needed
 
     const value: PodcastsContextType = {
         podcasts,

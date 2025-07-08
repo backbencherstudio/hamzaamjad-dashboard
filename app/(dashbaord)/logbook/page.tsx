@@ -45,16 +45,16 @@ export default function LogbookPage() {
 
     const handleSearchChange = (value: string) => {
         setSearchTerm(value);
-        
+
         if (searchTimeout) {
             clearTimeout(searchTimeout);
         }
-        
+
         const timeoutId = setTimeout(() => {
             setCurrentPage(1);
             fetchData(1, itemsPerPage, value || undefined);
         }, 300);
-        
+
         setSearchTimeout(timeoutId);
     };
 
@@ -95,7 +95,7 @@ export default function LogbookPage() {
     }, [data]);
 
     const columns = [
-        { key: 'userName', label: 'User Name', width: '8%' },
+        { key: 'userName', label: 'User Name', width: '5%' },
         { key: 'totalFlights', label: 'Total Flights', width: '9.4%' },
         { key: 'totalHours', label: 'Total Hours', width: '9%' },
         { key: 'pICHours', label: 'PIC Hours', width: '9%' },
@@ -142,19 +142,13 @@ export default function LogbookPage() {
                     />
                 </div>
             </div>
-            {loading ? (
-                <div className="mt-4 text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                    <p className="mt-2 text-white">Loading logbook data...</p>
-                </div>
-            ) : (
-                <ReusableTable
-                    data={transformedData}
-                    columns={columns}
-                    actions={actions}
-                    className="mt-4"
-                />
-            )}
+            <ReusableTable
+                data={transformedData}
+                columns={columns}
+                loading={loading}
+                actions={actions}
+                className="mt-4"
+            />
             <ReusablePagination
                 currentPage={currentPage}
                 totalPages={totalPages}

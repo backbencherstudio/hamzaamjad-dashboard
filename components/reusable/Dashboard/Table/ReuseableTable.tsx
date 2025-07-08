@@ -7,6 +7,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { Loader2 } from 'lucide-react';
 
 interface TableColumn {
     key: string
@@ -29,6 +30,7 @@ interface ReusableTableProps {
     actions?: TableAction[]
     onRowClick?: (row: any) => void
     className?: string
+    loading?: boolean
 }
 
 const statusColors = {
@@ -43,7 +45,8 @@ export default function ReusableTable({
     columns,
     actions,
     onRowClick,
-    className = ""
+    className = "",
+    loading = false
 }: ReusableTableProps) {
     const tableData = data
 
@@ -66,9 +69,11 @@ export default function ReusableTable({
         return value
     }
 
+    const colSpan = columns.length + (actions && actions.length > 0 ? 1 : 0);
+
     return (
         <div className={`${className}`}>
-            <div className="rounded-t-lg border border-[#23293D] text-white">
+            <div className="rounded-t-lg border border-[#23293D] text-white w-full">
                 <div className="overflow-x-auto">
                     <Table className="w-full min-w-[800px] divide-y divide-[#23293D]">
                         <TableHeader className="bg-[#23293D]">
@@ -91,72 +96,74 @@ export default function ReusableTable({
                             </TableRow>
                         </TableHeader>
                         <TableBody className="bg-[#1D1F2C] divide-y divide-[#23293D]">
-                            {tableData.map((row, index) => (
-                                <TableRow
-                                    key={index}
-                                    className={`capitalize hover:bg-transparent ${onRowClick ? 'cursor-pointer' : ''}`}
-                                    onClick={() => onRowClick?.(row)}
-                                >
-                                    {columns.map((column) => (
-                                        <TableCell
-                                            key={column.key}
-                                            style={{ width: column.width }}
-                                            className="px-6 py-4 text-sm text-white overflow-hidden"
-                                        >
-                                            <div className="truncate">
-                                                {renderCellContent(column, row)}
-                                            </div>
-                                        </TableCell>
-                                    ))}
-                                    {actions && actions.length > 0 && (
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex space-x-2">
-                                                {actions.map((action, actionIndex) => (
-                                                    action.render ? (
-                                                        <React.Fragment key={actionIndex}>
-                                                            {action.render(row)}
-                                                        </React.Fragment>
-                                                    ) : (
-                                                        <button
-                                                            key={actionIndex}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                action.onClick?.(row)
-                                                            }}
-                                                            className={`px-3 py-1 rounded text-xs font-medium ${action.variant === 'danger'
-                                                                ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                                                                : action.variant === 'success'
-                                                                    ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                                                    : action.variant === 'warning'
-                                                                        ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                                                                        : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                                                                } ${action.className || ''}`}
-                                                        >
-                                                            {action.label}
-                                                        </button>
-                                                    )
-                                                ))}
-                                            </div>
-                                        </TableCell>
-                                    )}
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={colSpan} className="text-center py-8">
+                                        <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-500" />
+                                    </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : tableData.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={colSpan} className="text-center py-8 text-gray-400">
+                                        No data found
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                tableData.map((row, index) => (
+                                    <TableRow
+                                        key={index}
+                                        className={`capitalize hover:bg-transparent ${onRowClick ? 'cursor-pointer' : ''}`}
+                                        onClick={() => onRowClick?.(row)}
+                                    >
+                                        {columns.map((column) => (
+                                            <TableCell
+                                                key={column.key}
+                                                style={{ width: column.width }}
+                                                className="px-6 py-4 text-sm text-white overflow-hidden"
+                                            >
+                                                <div className="truncate">
+                                                    {renderCellContent(column, row)}
+                                                </div>
+                                            </TableCell>
+                                        ))}
+                                        {actions && actions.length > 0 && (
+                                            <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div className="flex space-x-2">
+                                                    {actions.map((action, actionIndex) => (
+                                                        action.render ? (
+                                                            <React.Fragment key={actionIndex}>
+                                                                {action.render(row)}
+                                                            </React.Fragment>
+                                                        ) : (
+                                                            <button
+                                                                key={actionIndex}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    action.onClick?.(row)
+                                                                }}
+                                                                className={`px-3 py-1 rounded text-xs font-medium ${action.variant === 'danger'
+                                                                    ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                                                                    : action.variant === 'success'
+                                                                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                                                        : action.variant === 'warning'
+                                                                            ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                                                                            : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                                                                    } ${action.className || ''}`}
+                                                            >
+                                                                {action.label}
+                                                            </button>
+                                                        )
+                                                    ))}
+                                                </div>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </div>
             </div>
-
-            {tableData.length === 0 && (
-                <div className="text-center py-12">
-                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No data found</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                        No data available to display.
-                    </p>
-                </div>
-            )}
         </div>
     )
 }

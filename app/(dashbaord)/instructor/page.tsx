@@ -211,7 +211,8 @@ function InstructorPageContent() {
             label: 'Email',
             width: '22%',
             render: (value: string) => (
-                <span className="truncate block">{value}</span>
+              
+                <span className="truncate block lowercase">{value}</span>
             )
         },
         {
@@ -318,6 +319,7 @@ function InstructorPageContent() {
                 data={paginatedData}
                 columns={columns}
                 actions={actions}
+                loading={loading}
                 className="mt-4"
             />
             <ReusablePagination
@@ -369,7 +371,7 @@ function InstructorPageContent() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={cancelAction} className=" text-white cursor-pointer">
+                        <Button variant="outline" onClick={cancelAction} className="border-[#23293D] cursor-pointer text-black ">
                             Cancel
                         </Button>
                         <Button onClick={confirmActive} disabled={loading} className="bg-green-600 hover:bg-green-700 cursor-pointer">

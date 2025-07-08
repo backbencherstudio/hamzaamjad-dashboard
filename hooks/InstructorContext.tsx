@@ -82,7 +82,7 @@ export const InstructorProvider = ({ children }: { children: ReactNode }) => {
       setPage(1);
     } catch (err: any) {
       setError(err.message || 'Failed to add instructor');
-      // toast.error(err.message || 'Failed to add instructor');
+      toast.error(err.message || 'Failed to add instructor');
     } finally {
       setLoading(false);
     }

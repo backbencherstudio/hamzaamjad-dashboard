@@ -1,37 +1,55 @@
+"use client"
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Loader2 } from 'lucide-react';
 import React from 'react'
-import { useForm } from 'react-hook-form'
+import { usePromoCodeContext } from '@/hooks/PromoCodeContext'
 
-export default function AddPromoCode() {
-    const { register, handleSubmit, formState: { errors } } = useForm();
-    const onSubmit = (data: any) => {
-        console.log(data);
-    }
+interface AddPromoCodeProps {
+    onSuccess?: () => void;
+    page: number;
+    limit: number;
+    status: string;
+    search: string;
+}
+
+export default function AddPromoCode({ onSuccess, page, limit, status, search }: AddPromoCodeProps) {
+    const { createPromoCode, creating } = usePromoCodeContext();
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await createPromoCode(page, limit, status, search);
+            onSuccess?.();
+        } catch (error) {
+            console.error('Error creating promo code:', error);
+        }
+    };
+
     return (
-        <form
-            className="p-6 flex flex-col gap-4 bg-[#1D1F2C]"
-            onSubmit={handleSubmit(onSubmit)}
-        >
-            <div>
-                <Label className="block text-sm text-white mb-1" htmlFor="name">Promo Code</Label>
-                <Input
-                    id="name"
-                    type="number"
-                    placeholder="Enter promo code"
-                    className="w-full px-4 py-2 rounded bg-[#161721] text-white border border-[#23293D] focus:outline-none"
-                    {...register('name', { required: 'Promo code is required' })}
-                />
-                {errors.name && <span className="text-xs text-red-400">{errors.name.message as string}</span>}
+        <div className='p-6 flex flex-col gap-4 bg-[#1D1F2C]'>
+            <div className="text-center mb-4">
+                <h3 className="text-lg font-semibold text-white mb-2">Create New Promo Code</h3>
+                <p className="text-gray-400 text-sm">
+                    Click the button below to generate a new promo code. The backend will automatically create a unique code for you.
+                </p>
             </div>
 
-            <Button
-                type="submit"
-                className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2"
-            >
-                Create Promo Code
-            </Button>
-        </form>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <Button
+                    type="submit"
+                    disabled={creating}
+                    className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-3 px-4 rounded-lg"
+                >
+                    {creating ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            Creating Promo Code...
+                        </>
+                    ) : (
+                        "Generate Promo Code"
+                    )}
+                </Button>
+            </form>
+        </div>
     )
 }

@@ -26,16 +26,16 @@ export default function PodcastsPage() {
     const [hasInitialized, setHasInitialized] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedPodcast, setSelectedPodcast] = useState<any>(null);
-    
-    const { 
-        podcasts, 
-        loading, 
-        deletePodcast, 
-        fetchPodcasts, 
-        currentPage, 
-        totalPages, 
-        totalItems, 
-        itemsPerPage 
+
+    const {
+        podcasts,
+        loading,
+        deletePodcast,
+        fetchPodcasts,
+        currentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage
     } = usePodcasts();
 
     // Clean up timeout on unmount
@@ -189,15 +189,15 @@ export default function PodcastsPage() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-32 p-2">
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             className="w-full justify-start cursor-pointer"
                             onClick={() => handleEdit(row)}
                         >
                             Edit
                         </Button>
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             className="w-full justify-start text-red-500 cursor-pointer"
                             onClick={() => handleDelete(row)}
                         >
@@ -238,31 +238,25 @@ export default function PodcastsPage() {
                 </div>
             </div>
 
-            {loading ? (
-                <div className="flex justify-center items-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-2 text-white">Loading podcasts...</span>
-                </div>
-            ) : (
-                <>
-                    <ReusableTable
-                        data={podcasts}
-                        columns={columns}
-                        actions={actions}
-                        className="mt-4"
-                    />
+            <>
+                <ReusableTable
+                    data={podcasts}
+                    columns={columns}
+                    actions={actions}
+                    loading={loading}
+                    className="mt-4"
+                />
 
-                    <ReusablePagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        itemsPerPage={itemsPerPage}
-                        totalItems={totalItems}
-                        onPageChange={handlePageChange}
-                        onItemsPerPageChange={handleItemsPerPageChange}
-                        className=""
-                    />
-                </>
-            )}
+                <ReusablePagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    itemsPerPage={itemsPerPage}
+                    totalItems={totalItems}
+                    onPageChange={handlePageChange}
+                    onItemsPerPageChange={handleItemsPerPageChange}
+                    className=""
+                />
+            </>
 
             {/* Add/Edit Podcast Modal */}
             <CustomReusableModal
@@ -271,7 +265,7 @@ export default function PodcastsPage() {
                 onClose={handleFormSuccess}
                 title={isEditMode ? "Edit Podcast" : "Add New Podcasts"}
             >
-                <AddNewPodcasts 
+                <AddNewPodcasts
                     podcast={editingPodcast}
                     onClose={handleFormSuccess}
                     isEdit={isEditMode}

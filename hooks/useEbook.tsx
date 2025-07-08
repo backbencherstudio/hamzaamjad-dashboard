@@ -5,6 +5,9 @@ import { toast } from 'react-toastify';
 interface EbookContextType {
   ebooks: Ebook[];
   loading: boolean;
+  creating: boolean;
+  deletingId: string | null;
+  updatingId: string | null;
   totalPages: number;
   totalItems: number;
   currentPage: number;
@@ -24,14 +27,17 @@ export function EbookProvider({ children }: { children: React.ReactNode }) {
 
     const [ebooks, setEbooks] = useState<Ebook[]>([]);
     const [loading, setLoading] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
 
     const fetchEbooks = useCallback(async (page?: number, limit?: number, search?: string) => {
+        setLoading(true);
         try {
-            setLoading(true);
             const response = await getAllEbookApi(page || 1, limit || DEFAULT_ITEMS_PER_PAGE, search);
 
             if (response.success) {
@@ -49,8 +55,8 @@ export function EbookProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const createEbook = useCallback(async (data: CreateEbookData): Promise<boolean> => {
+        setCreating(true);
         try {
-            setLoading(true);
             const response = await createEbookApi(data);
 
             if (response.success) {
@@ -71,23 +77,16 @@ export function EbookProvider({ children }: { children: React.ReactNode }) {
             toast.error(error.message || 'Failed to create ebook');
             return false;
         } finally {
-            setLoading(false);
+            setCreating(false);
         }
     }, [itemsPerPage]);
 
     const updateEbook = useCallback(async (id: string, data: UpdateEbookData): Promise<boolean> => {
+        setUpdatingId(id);
         try {
-            setLoading(true);
             const response = await updateEbookApi(id, data);
-
             if (response.success) {
-                toast.success('Ebook updated successfully');
-                const refreshResponse = await getAllEbookApi(currentPage, itemsPerPage);
-                if (refreshResponse.success) {
-                    setEbooks(refreshResponse.data.ebooks);
-                    setTotalPages(refreshResponse.data.pagination.totalPages);
-                    setTotalItems(refreshResponse.data.pagination.totalItems);
-                }
+                setEbooks(prev => prev.map(ebook => ebook.id === id ? { ...ebook, ...response.data } : ebook));
                 return true;
             } else {
                 toast.error(response.message || 'Failed to update ebook');
@@ -97,35 +96,24 @@ export function EbookProvider({ children }: { children: React.ReactNode }) {
             toast.error(error.message || 'Failed to update ebook');
             return false;
         } finally {
-            setLoading(false);
+            setUpdatingId(null);
         }
-    }, [currentPage, itemsPerPage]);
+    }, []);
 
     const deleteEbook = useCallback(async (id: string): Promise<boolean> => {
+        setDeletingId(id);
         try {
-            setLoading(true);
-            const response = await deleteEbookApi(id);
-
-            if (response.success) {
-                toast.success('Ebook deleted successfully');
-                const refreshResponse = await getAllEbookApi(currentPage, itemsPerPage);
-                if (refreshResponse.success) {
-                    setEbooks(refreshResponse.data.ebooks);
-                    setTotalPages(refreshResponse.data.pagination.totalPages);
-                    setTotalItems(refreshResponse.data.pagination.totalItems);
-                }
-                return true;
-            } else {
-                toast.error(response.message || 'Failed to delete ebook');
-                return false;
-            }
+            await deleteEbookApi(id);
+            setEbooks(prev => prev.filter(ebook => ebook.id !== id));
+            setTotalItems(prev => prev - 1);
+            return true;
         } catch (error: any) {
             toast.error(error.message || 'Failed to delete ebook');
             return false;
         } finally {
-            setLoading(false);
+            setDeletingId(null);
         }
-    }, [currentPage, itemsPerPage]);
+    }, []);
 
     const setCurrentPageCallback = useCallback((page: number) => {
         setCurrentPage(page);
@@ -158,6 +146,9 @@ export function EbookProvider({ children }: { children: React.ReactNode }) {
         <EbookContext.Provider value={{
             ebooks,
             loading,
+            creating,
+            deletingId,
+            updatingId,
             totalPages,
             totalItems,
             currentPage,

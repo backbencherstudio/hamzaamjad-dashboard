@@ -5,82 +5,57 @@ import ReusablePagination from '@/components/reusable/Dashboard/Table/ReusablePa
 import { toast } from 'react-toastify'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { MoreVertical } from 'lucide-react'
+import { MoreVertical, Loader2 } from 'lucide-react'
 import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReusableModal'
 import AddPromoCode from '../_components/Admin/AddPromoCode/AddPromoCode'
+import { usePromoCodeContext, PromoCodeProvider } from '@/hooks/PromoCodeContext'
+import type { PromoCode } from '@/hooks/PromoCodeContext'
+import { useDebounce } from '@/hooks/useDebounce'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
-export default function PromoCode() {
-    const [data, setData] = useState([]);
+function PromoCodeContent() {
     const [activeTab, setActiveTab] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
 
-    // Fetch data from JSON file
+    const { promoCodes, loading, fetchPromoCodes, totalPages, totalItems, deletePromoCode, deletingId } = usePromoCodeContext();
+
+    // Debounce search term
+    const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+    // Fetch data when filters change
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('/data/PromoCode.json');
-                const jsonData = await response.json();
-                setData(jsonData);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error('Failed to load promo code data');
-            }
-        };
+        const status = activeTab === 'all' ? '' : activeTab.toUpperCase();
+        fetchPromoCodes(currentPage, itemsPerPage, status, debouncedSearchTerm);
+    }, [currentPage, itemsPerPage, activeTab, debouncedSearchTerm, fetchPromoCodes]);
 
-        fetchData();
-    }, []);
+    // Initial data fetch
+    useEffect(() => {
+        fetchPromoCodes(1, 10, '', '');
+    }, [fetchPromoCodes]);
 
     // Define tabs with counts
     const tabs = [
         {
             key: 'all',
             label: 'All',
-            count: data.length
+            count: totalItems
         },
         {
             key: 'active',
             label: 'Active',
-            count: data.filter(booking => booking.status.toLowerCase() === 'active').length
+            count: promoCodes.filter(code => code.status === 'ACTIVE').length
         },
         {
             key: 'used',
             label: 'Used',
-            count: data.filter(booking => booking.status.toLowerCase() !== 'active').length
+            count: promoCodes.filter(code => code.status === 'USED').length
         }
     ];
-
-    // Filter data based on active tab and search
-    const filteredData = useMemo(() => {
-        let filtered = data;
-
-        // Filter by tab
-        if (activeTab !== 'all') {
-            if (activeTab === 'active') {
-                filtered = filtered.filter(booking => booking.status.toLowerCase() === 'active');
-            } else if (activeTab === 'used') {
-                filtered = filtered.filter(booking => booking.status.toLowerCase() !== 'active');
-            }
-        }
-
-        // Filter by search term
-        if (searchTerm) {
-            filtered = filtered.filter(booking =>
-                Object.values(booking).some(value =>
-                    value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-                )
-            );
-        }
-
-        return filtered;
-    }, [activeTab, searchTerm, data]);
-
-    // Pagination logic
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -96,46 +71,89 @@ export default function PromoCode() {
         setCurrentPage(1);
     };
 
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+    };
+
+    const handlePromoCreated = () => {
+        setIsModalOpen(false);
+    };
+
+    const cancelDelete = () => {
+        setDialogOpen(false);
+        setSelectedId(null);
+    };
+
+    const confirmDelete = async () => {
+        if (selectedId) {
+            await deletePromoCode(selectedId);
+            setDialogOpen(false);
+            setSelectedId(null);
+        }
+    };
+
     const columns = [
         {
             key: 'code',
             label: 'Code List',
-            width: '25%',
-            render: (value: string) => <span>{value}</span>,
+            width: '20%',
+            render: (value: string) => <span className="font-mono font-bold text-blue-400">{value}</span>,
         },
         {
             key: 'status',
             label: 'Status',
-            width: '25%',
+            width: '20%',
             render: (value: string) => (
-                <span className={`inline-flex items-center justify-center w-20 px-3 py-1 rounded text-xs font-medium border ${value?.toLowerCase() === 'active'
+                <span className={`inline-flex items-center justify-center w-20 px-3 py-1 rounded text-xs font-medium border ${value === 'ACTIVE'
                     ? 'bg-green-900/10 text-green-400 border-green-700'
                     : 'bg-red-900/10 text-red-400 border-red-700'
                     }`}>
-                    {value?.toLowerCase() === 'active' ? 'Active' : 'Used'}
+                    {value === 'ACTIVE' ? 'Active' : 'Used'}
                 </span>
             ),
         },
         {
             key: 'userName',
             label: 'User Name',
-            width: '25%',
-            render: (value: string) => <span className="truncate block">{value || '-'}</span>,
+            width: '20%',
+            render: (_: any, row: any) => (
+                <span className="truncate block text-gray-300">
+                    {row.user?.name || '-'}
+                </span>
+            ),
         },
         {
-            key: 'email',
+            key: 'userEmail',
             label: 'Email',
-            width: '25%',
-            render: (value: string) => <span className="truncate block">{value || '-'}</span>,
+            width: '20%',
+            render: (_: any, row: any) => (
+                <span className="truncate block text-gray-300">
+                    {row.user?.email || '-'}
+                </span>
+            ),
         },
-
+        {
+            key: 'createdAt',
+            label: 'Created Date',
+            width: '20%',
+            render: (value: string) => <span className="text-sm text-gray-300">{new Date(value).toLocaleDateString()}</span>,
+        },
     ];
+
+    const copyToClipboard = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            toast.success('Promo code copied to clipboard!');
+        } catch (err) {
+            toast.error('Failed to copy promo code');
+        }
+    };
 
     const actions = [
         {
             label: 'Action',
             width: 'auto',
-            render: (row: any) => (
+            render: (row: PromoCode) => (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0 flex items-center justify-center cursor-pointer">
@@ -143,9 +161,24 @@ export default function PromoCode() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-32 p-2">
-                        <Button variant="ghost" className="w-full justify-start cursor-pointer">Active</Button>
-                        <Button variant="ghost" className="w-full justify-start text-red-500 cursor-pointer">Deactivate</Button>
-                        <Button variant="ghost" className="w-full justify-start cursor-pointer">Update</Button>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start cursor-pointer"
+                            onClick={() => copyToClipboard(row.code)}
+                        >
+                            Copy Code
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start text-red-500 cursor-pointer"
+                            onClick={() => {
+                                setSelectedId(row.id);
+                                setDialogOpen(true);
+                            }}
+                            disabled={deletingId === row.id}
+                        >
+                            Delete
+                        </Button>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
@@ -192,7 +225,7 @@ export default function PromoCode() {
                         </div>
                         <input
                             type="text"
-                            placeholder="Search"
+                            placeholder="Search promo codes..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="block w-full sm:w-80 pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-[#181F2A] text-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
@@ -201,35 +234,77 @@ export default function PromoCode() {
                 </div>
             </div>
 
-            <ReusableTable
-                data={paginatedData}
-                columns={columns}
-                actions={actions}
-                className="mt-4"
-            />
+            <>
+                <ReusableTable
+                    data={promoCodes}
+                    columns={columns}
+                    actions={actions}
+                    className="mt-4"
+                    loading={loading}
+                />
 
-            <ReusablePagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                itemsPerPage={itemsPerPage}
-                totalItems={filteredData.length}
-                onPageChange={handlePageChange}
-                onItemsPerPageChange={handleItemsPerPageChange}
-                className=""
-            />
+                {
+                    loading ? (
+                        <></>
+                    ) : (
+                        <ReusablePagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            itemsPerPage={itemsPerPage}
+                            totalItems={totalItems}
+                            onPageChange={handlePageChange}
+                            onItemsPerPageChange={handleItemsPerPageChange}
+                            className=""
+                        />
+                    )
+                }
+            </>
 
-            {/* Add Instructor Modal */}
+            {/* Add Promo Code Modal */}
             <CustomReusableModal
                 className='bg-[#1D1F2C] text-white'
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={handleModalClose}
                 title="Create Promo Code"
             >
-                <AddPromoCode />
+                <AddPromoCode
+                    onSuccess={handlePromoCreated}
+                    page={currentPage}
+                    limit={itemsPerPage}
+                    status={activeTab === 'all' ? '' : activeTab.toUpperCase()}
+                    search={debouncedSearchTerm}
+                />
             </CustomReusableModal>
 
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogContent className="bg-[#1D1F2C] text-white border border-[#23293D]">
+                    <DialogHeader>
+                        <DialogTitle>Delete Promo Code?</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this promo code? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={cancelDelete} className='text-black cursor-pointer'>
+                            Cancel
+                        </Button>
+                        <Button className='cursor-pointer' variant="destructive" onClick={confirmDelete} disabled={deletingId === selectedId}>
+                            {deletingId === selectedId ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     )
+}
+
+export default function PromoCode() {
+    return (
+        <PromoCodeProvider>
+            <PromoCodeContent />
+        </PromoCodeProvider>
+    );
 }
 
 

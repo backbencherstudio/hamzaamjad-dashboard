@@ -4,13 +4,14 @@ import ReusableTable from '@/components/reusable/Dashboard/Table/ReuseableTable'
 import ReusablePagination from '@/components/reusable/Dashboard/Table/ReusablePagination'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { MoreVertical } from 'lucide-react'
+import { MoreVertical, Loader2 } from 'lucide-react'
 import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReusableModal'
 import EbookAdd from '../_components/Admin/Ebook/EbookAdd'
 import { useEbook } from '@/hooks/useEbook'
 import { Ebook } from '@/apis/ebookApis'
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import Image from 'next/image'
+import { useDebounce } from '@/hooks/useDebounce'
 
 export default function EbookPage() {
   const {
@@ -27,43 +28,26 @@ export default function EbookPage() {
     setItemsPerPage
   } = useEbook();
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedEbook, setSelectedEbook] = useState<Ebook | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    return () => {
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
-    };
-  }, [searchTimeout]);
-
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
-
-
-    const timeoutId = setTimeout(() => {
-      setCurrentPage(1);
-      fetchEbooks(1, itemsPerPage, value || undefined);
-    }, 300);
-
-    setSearchTimeout(timeoutId);
-  };
+    setCurrentPage(1);
+    fetchEbooks(1, itemsPerPage, debouncedSearchTerm || undefined);
+    // eslint-disable-next-line
+  }, [debouncedSearchTerm, itemsPerPage]);
 
   const paginatedData = ebooks;
 
   const handlePageChange = (page: number) => {
     if (page !== currentPage) {
       setCurrentPage(page);
-      fetchEbooks(page, itemsPerPage, searchTerm || undefined);
+      fetchEbooks(page, itemsPerPage, debouncedSearchTerm || undefined);
     }
   };
 
@@ -71,10 +55,9 @@ export default function EbookPage() {
     if (newItemsPerPage !== itemsPerPage) {
       setItemsPerPage(newItemsPerPage);
       setCurrentPage(1);
-      fetchEbooks(1, newItemsPerPage, searchTerm || undefined);
+      fetchEbooks(1, newItemsPerPage, debouncedSearchTerm || undefined);
     }
   };
-
 
   const columns = [
     {
@@ -85,7 +68,7 @@ export default function EbookPage() {
         <Image
           width={100}
           height={100}
-          src={value || '/Image/logo/logo.png'}
+          src={value}
           alt="E-book"
           className="w-12 h-12 rounded object-cover"
         />
@@ -111,26 +94,24 @@ export default function EbookPage() {
     },
   ];
 
-  const handleDelete = async (id: string) => {
-    await deleteEbook(id);
-  };
-
   const openDeleteDialog = (id: string) => {
-    setDeleteId(id);
+    setSelectedId(id);
     setDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (deleteId) {
-      await handleDelete(deleteId);
-      setDialogOpen(false);
-      setDeleteId(null);
-    }
   };
 
   const cancelDelete = () => {
     setDialogOpen(false);
-    setDeleteId(null);
+    setSelectedId(null);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedId) {
+      setDeletingId(selectedId);
+      await deleteEbook(selectedId);
+      setDialogOpen(false);
+      setSelectedId(null);
+      setDeletingId(null);
+    }
   };
 
   const handleEdit = (ebook: Ebook) => {
@@ -139,10 +120,19 @@ export default function EbookPage() {
     setIsModalOpen(true);
   };
 
+  // Only close modal, don't reload table
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setIsEditMode(false);
     setSelectedEbook(null);
+  };
+
+  // Only reload table after successful add/edit
+  const handleEbookCreatedOrUpdated = () => {
+    setIsModalOpen(false);
+    setIsEditMode(false);
+    setSelectedEbook(null);
+    fetchEbooks(currentPage, itemsPerPage, debouncedSearchTerm || undefined);
   };
 
   const actions = [
@@ -169,7 +159,7 @@ export default function EbookPage() {
               variant="ghost"
               className="w-full justify-start text-red-500 cursor-pointer"
               onClick={() => openDeleteDialog(row.id)}
-              disabled={loading}
+              disabled={loading || deletingId === row.id}
             >
               Delete
             </Button>
@@ -201,7 +191,7 @@ export default function EbookPage() {
               type="text"
               placeholder="Search"
               value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="block w-full sm:w-80 pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-[#181F2A] text-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
             />
           </div>
@@ -212,6 +202,7 @@ export default function EbookPage() {
         data={paginatedData}
         columns={columns}
         actions={actions}
+        loading={loading}
         className="mt-4"
       />
 
@@ -233,7 +224,7 @@ export default function EbookPage() {
         title={isEditMode ? "Edit E-book" : "Add New E-book"}
       >
         <EbookAdd
-          onClose={handleCloseModal}
+          onClose={isEditMode ? handleEbookCreatedOrUpdated : handleEbookCreatedOrUpdated}
           isEditMode={isEditMode}
           selectedEbook={selectedEbook}
           updateEbook={updateEbook}
@@ -250,11 +241,16 @@ export default function EbookPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={cancelDelete} className='text-black'>
+            <Button variant="outline" onClick={cancelDelete} className='text-black cursor-pointer'>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+            <Button
+              className='cursor-pointer'
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deletingId === selectedId}
+            >
+              {deletingId === selectedId ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

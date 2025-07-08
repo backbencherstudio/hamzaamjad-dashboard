@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { useEbook } from '@/hooks/useEbook';
 import { toast } from 'react-toastify';
 import { Ebook,  UpdateEbookData } from '@/apis/ebookApis';
+import { Loader2 } from 'lucide-react';
 
 interface EbookAddProps {
     onClose?: () => void;
@@ -19,7 +20,7 @@ interface EbookAddProps {
 
 export default function EbookAdd({ onClose, isEditMode = false, selectedEbook, updateEbook }: EbookAddProps) {
     const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm();
-    const { createEbook, loading } = useEbook();
+    const { createEbook, creating, updatingId } = useEbook();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>();
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -275,12 +276,16 @@ export default function EbookAdd({ onClose, isEditMode = false, selectedEbook, u
             </div>
             <Button
                 type="submit"
-                disabled={loading}
+                disabled={isEditMode ? updatingId === selectedEbook?.id : creating}
                 className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                {loading 
-                    ? (isEditMode ? 'Updating E-book...' : 'Adding E-book...') 
-                    : (isEditMode ? 'Update E-book' : 'Add E-book')
+                {isEditMode
+                    ? (updatingId === selectedEbook?.id
+                        ? (<><Loader2 className="w-4 h-4 animate-spin mr-2" /> Updating E-book...</>)
+                        : 'Update E-book')
+                    : (creating
+                        ? (<><Loader2 className="w-4 h-4 animate-spin mr-2" /> Adding E-book...</>)
+                        : 'Add E-book')
                 }
             </Button>
         </form>
