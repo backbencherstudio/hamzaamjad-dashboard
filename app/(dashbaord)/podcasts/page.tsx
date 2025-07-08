@@ -4,10 +4,11 @@ import ReusableTable from '@/components/reusable/Dashboard/Table/ReuseableTable'
 import ReusablePagination from '@/components/reusable/Dashboard/Table/ReusablePagination'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { MoreVertical } from 'lucide-react'
+import { Loader2, MoreVertical } from 'lucide-react'
 import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReusableModal'
 import AddNewPodcasts from '../_components/Admin/AddNewPodcasts/AddNewPodcasts'
 import { usePodcasts } from '@/hooks/usePodcasts'
+import { useDebounce } from '@/hooks/useDebounce'
 import {
     Dialog,
     DialogContent,
@@ -19,7 +20,6 @@ import {
 
 export default function PodcastsPage() {
     const [searchTerm, setSearchTerm] = useState('');
-    const searchTimeout = useRef<NodeJS.Timeout | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPodcast, setEditingPodcast] = useState<any>(null);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -35,42 +35,39 @@ export default function PodcastsPage() {
         currentPage,
         totalPages,
         totalItems,
-        itemsPerPage
+        itemsPerPage,
+        deletingId
     } = usePodcasts();
 
-    // Clean up timeout on unmount
-    useEffect(() => {
-        return () => {
-            if (searchTimeout.current) clearTimeout(searchTimeout.current);
-        };
-    }, []);
+    const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-    // Fetch data only once when component mounts
+    const fetchData = useCallback((page?: number, limit?: number, search?: string) => {
+        fetchPodcasts(page || 1, limit || itemsPerPage, search);
+    }, [fetchPodcasts, itemsPerPage]);
+
     useEffect(() => {
         if (!hasInitialized) {
-            fetchPodcasts();
+            fetchData();
             setHasInitialized(true);
         }
-    }, [fetchPodcasts, hasInitialized]);
+    }, [fetchData, hasInitialized]);
 
+    useEffect(() => {
+        if (hasInitialized) {
+            fetchData(1, itemsPerPage, debouncedSearchTerm || undefined);
+        }
+    }, [debouncedSearchTerm, hasInitialized]);
 
     const handlePageChange = (page: number) => {
-        fetchPodcasts(page, itemsPerPage, searchTerm);
+        fetchData(page, itemsPerPage, debouncedSearchTerm);
     };
 
     const handleItemsPerPageChange = (newItemsPerPage: number) => {
-        fetchPodcasts(1, newItemsPerPage, searchTerm);
+        fetchData(1, newItemsPerPage, debouncedSearchTerm);
     };
 
-    // Debounced search handler using useRef
     const handleSearchChange = (value: string) => {
         setSearchTerm(value);
-        if (searchTimeout.current) {
-            clearTimeout(searchTimeout.current);
-        }
-        searchTimeout.current = setTimeout(() => {
-            fetchPodcasts(1, itemsPerPage, value || undefined);
-        }, 300);
     };
 
     const handleEdit = (podcast: any) => {
@@ -113,14 +110,10 @@ export default function PodcastsPage() {
         setIsModalOpen(true);
     };
 
-    // Handle successful form submission
     const handleFormSuccess = useCallback(() => {
         handleCloseModal();
-        // Force refresh the data
-        setTimeout(() => {
-            fetchPodcasts(currentPage, itemsPerPage, searchTerm);
-        }, 100);
-    }, [fetchPodcasts, currentPage, itemsPerPage, searchTerm]);
+
+    }, []);
 
     const columns = [
         {
@@ -285,8 +278,8 @@ export default function PodcastsPage() {
                         <Button variant="outline" onClick={cancelAction} className="border-[#23293D] cursor-pointer text-black">
                             Cancel
                         </Button>
-                        <Button variant="destructive" onClick={confirmDelete} disabled={loading} className='cursor-pointer'>
-                            {loading ? 'Deleting...' : 'Delete'}
+                        <Button variant="destructive" onClick={confirmDelete} disabled={deletingId === (selectedPodcast?.id || selectedPodcast?._id)} className='cursor-pointer'>
+                            {deletingId === (selectedPodcast?.id || selectedPodcast?._id) ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

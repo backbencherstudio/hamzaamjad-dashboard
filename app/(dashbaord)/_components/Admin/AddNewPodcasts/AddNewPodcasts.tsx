@@ -7,6 +7,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { usePodcasts } from '@/hooks/usePodcasts';
+import Image from 'next/image';
 
 interface AddNewPodcastsProps {
     podcast?: any;
@@ -23,7 +24,7 @@ export default function AddNewPodcasts({ podcast, onClose, isEdit = false }: Add
     const [existingCover, setExistingCover] = useState<string>('');
     const mp3InputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
-    const { createPodcast, updatePodcast, loading } = usePodcasts();
+    const { createPodcast, updatePodcast, creating, updatingId } = usePodcasts();
 
     // Initialize form with podcast data if editing
     useEffect(() => {
@@ -101,6 +102,10 @@ export default function AddNewPodcasts({ podcast, onClose, isEdit = false }: Add
             setCoverFile(e.target.files[0]);
         }
     };
+
+    // Determine if button should be disabled and show loading
+    const isButtonLoading = isEdit ? !!updatingId : creating;
+    const isButtonDisabled = isButtonLoading;
 
     return (
         <form
@@ -194,14 +199,18 @@ export default function AddNewPodcasts({ podcast, onClose, isEdit = false }: Add
                     onClick={() => coverInputRef.current?.click()}
                 >
                     {coverFile ? (
-                        <img
+                        <Image
+                            width={64}
+                            height={64}
                             src={URL.createObjectURL(coverFile)}
                             alt="Cover Preview"
                             className="mx-auto h-16 w-16 object-cover rounded mb-2"
                         />
                     ) : existingCover ? (
                         <div>
-                            <img
+                            <Image
+                                width={64}
+                                height={64}
                                 src={existingCover}
                                 alt="Current Cover"
                                 className="mx-auto h-16 w-16 object-cover rounded mb-2"
@@ -222,10 +231,10 @@ export default function AddNewPodcasts({ podcast, onClose, isEdit = false }: Add
             </div>
             <Button
                 type="submit"
-                disabled={loading}
+                disabled={isButtonDisabled}
                 className="w-full cursor-pointer transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white font-semibold py-2 px-4 rounded-lg mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                {loading ? 'Processing...' : (isEdit ? 'Update Podcast' : 'Add Podcast')}
+                {isButtonLoading ? 'Processing...' : (isEdit ? 'Update Podcast' : 'Add Podcast')}
             </Button>
         </form>
     )

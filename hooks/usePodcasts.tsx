@@ -21,6 +21,9 @@ interface Podcast {
 interface PodcastsContextType {
     podcasts: Podcast[];
     loading: boolean;
+    creating: boolean;
+    updatingId: string | null;
+    deletingId: string | null;
     createPodcast: (data: FormData) => Promise<void>;
     updatePodcast: (id: string, data: FormData) => Promise<void>;
     deletePodcast: (id: string) => Promise<void>;
@@ -48,6 +51,9 @@ interface PodcastsProviderProps {
 export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
     const [podcasts, setPodcasts] = useState<Podcast[]>([]);
     const [loading, setLoading] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
@@ -82,7 +88,7 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
     };
 
     const createPodcast = async (data: FormData) => {
-        setLoading(true);
+        setCreating(true);
         try {
             await createPortcustsApi(data);
             toast.success('Podcast created successfully');
@@ -90,12 +96,12 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
         } catch (error: any) {
             toast.error(error.message || 'Failed to create podcast');
         } finally {
-            setLoading(false);
+            setCreating(false);
         }
     };
 
     const updatePodcast = async (id: string, data: FormData) => {
-        setLoading(true);
+        setUpdatingId(id);
         try {
             await updatePortcustsApi(id, data);
             toast.success('Podcast updated successfully');
@@ -103,20 +109,21 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
         } catch (error: any) {
             toast.error(error.message || 'Failed to update podcast');
         } finally {
-            setLoading(false);
+            setUpdatingId(null);
         }
     };
 
     const deletePodcast = async (id: string) => {
-        setLoading(true);
+        setDeletingId(id);
         try {
             await deletePortcustsApi(id);
             toast.success('Podcast deleted successfully');
-            await fetchPodcasts(currentPage, itemsPerPage, currentSearch);
+            setPodcasts(prev => prev.filter(p => p.id !== id && p._id !== id));
+            setTotalItems(prev => prev - 1);
         } catch (error: any) {
             toast.error(error.message || 'Failed to delete podcast');
         } finally {
-            setLoading(false);
+            setDeletingId(null);
         }
     };
 
@@ -124,6 +131,9 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
     const value: PodcastsContextType = {
         podcasts,
         loading,
+        creating,
+        updatingId,
+        deletingId,
         createPodcast,
         updatePodcast,
         deletePodcast,
