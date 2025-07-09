@@ -1,3 +1,4 @@
+'use client'
 import { useState, createContext, useContext, ReactNode } from 'react';
 import { createPortcustsApi, getAllPortcustsApi, updatePortcustsApi, deletePortcustsApi } from '@/apis/portcustsApis';
 import { toast } from 'react-toastify';
@@ -64,12 +65,12 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
         setLoading(true);
         try {
             const response = await getAllPortcustsApi(page, limit, search);
-            
+
             // Handle the correct API response structure
             const responseData = response.data;
             const podcastsData = Array.isArray(responseData?.portcusts) ? responseData.portcusts : [];
             const paginationData = responseData?.pagination || {};
-            
+
             setPodcasts(podcastsData);
             setCurrentPage(paginationData.currentPage || page);
             setTotalPages(paginationData.totalPages || 1);
@@ -78,7 +79,7 @@ export const PodcastsProvider = ({ children }: PodcastsProviderProps) => {
             if (search !== undefined) {
                 setCurrentSearch(search);
             }
-            
+
         } catch (error: any) {
             toast.error(error.message || 'Failed to fetch podcasts');
             setPodcasts([]);

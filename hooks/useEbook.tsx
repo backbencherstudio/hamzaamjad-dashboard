@@ -1,23 +1,24 @@
+'use client'
 import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { createEbookApi, getAllEbookApi, deleteEbookApi, updateEbookApi, Ebook, CreateEbookData, UpdateEbookData } from '@/apis/ebookApis';
 import { toast } from 'react-toastify';
 
 interface EbookContextType {
-  ebooks: Ebook[];
-  loading: boolean;
-  creating: boolean;
-  deletingId: string | null;
-  updatingId: string | null;
-  totalPages: number;
-  totalItems: number;
-  currentPage: number;
-  itemsPerPage: number;
-  createEbook: (data: CreateEbookData) => Promise<boolean>;
-  updateEbook: (id: string, data: UpdateEbookData) => Promise<boolean>;
-  fetchEbooks: (page?: number, limit?: number, search?: string) => Promise<void>;
-  deleteEbook: (id: string) => Promise<boolean>;
-  setCurrentPage: (page: number) => void;
-  setItemsPerPage: (limit: number) => void;
+    ebooks: Ebook[];
+    loading: boolean;
+    creating: boolean;
+    deletingId: string | null;
+    updatingId: string | null;
+    totalPages: number;
+    totalItems: number;
+    currentPage: number;
+    itemsPerPage: number;
+    createEbook: (data: CreateEbookData) => Promise<boolean>;
+    updateEbook: (id: string, data: UpdateEbookData) => Promise<boolean>;
+    fetchEbooks: (page?: number, limit?: number, search?: string) => Promise<void>;
+    deleteEbook: (id: string) => Promise<boolean>;
+    setCurrentPage: (page: number) => void;
+    setItemsPerPage: (limit: number) => void;
 }
 
 const EbookContext = createContext<EbookContextType | undefined>(undefined);

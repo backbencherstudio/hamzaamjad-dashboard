@@ -2,23 +2,33 @@
 import React, { useState } from 'react'
 import CardLayerImg from '@/public/Image/CardLayer.png'
 import Image from 'next/image';
+import { useDashboardContext } from '@/hooks/useDashboard';
 
 export default function OverviewCard() {
+    const { dashboardData, loading, fetchDashboardData } = useDashboardContext();
+    const [filter, setFilter] = useState('Month');
+
     const data = [
         {
             title: 'Total Pilot User',
-            value: 0 ,
+            value: dashboardData?.totalUsers || 0,
         },
         {
-            title: 'Total Instructor ',
-            value: 0,
+            title: 'Total Instructor',
+            value: dashboardData?.totalInstructors || 0,
         },
         {
-            title: 'Total Membership ',
-            value: 0,
+            title: 'Total Membership',
+            value: dashboardData?.totalSubscribers || 0,
         }
-    ]
-    const [filter, setFilter] = useState('Month');
+    ];
+
+    const handleFilterChange = (value: string) => {
+        setFilter(value);
+        // You can add logic here to refetch data based on filter
+        // fetchDashboardData(10); // or different limit based on filter
+    };
+
     return (
         <>
             <div className="flex items-center justify-between">
@@ -27,7 +37,7 @@ export default function OverviewCard() {
                 <select
                     className="bg-[#181E34] text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-transparent"
                     value={filter}
-                    onChange={e => setFilter(e.target.value)}
+                    onChange={e => handleFilterChange(e.target.value)}
                 >
                     <option value="Month">Month</option>
                     <option value="7 days">7 days</option>
@@ -42,7 +52,9 @@ export default function OverviewCard() {
                             <Image width={100} height={100} src={CardLayerImg} alt='card layer' className='w-full h-full rounded-lg' />
                         </div>
                         <h3 className='text-md '>{item.title}</h3>
-                        <p className='text-2xl font-bold mt-5 '>{item.value}</p>
+                        <p className='text-2xl font-bold mt-5 '>
+                            {loading ? '...' : item.value}
+                        </p>
                     </div>
                 ))}
             </div>

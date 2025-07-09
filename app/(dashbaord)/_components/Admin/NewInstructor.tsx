@@ -1,35 +1,72 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import ReusableTable from '@/components/reusable/Dashboard/Table/ReuseableTable'
-import { MoreVertical } from 'lucide-react'
+import { MoreVertical, Loader2 } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '@/components/ui/button'
-import { toast } from 'react-toastify'
+import { useDashboardContext } from '@/hooks/useDashboard'
 import Link from 'next/link'
-
-
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 
 export default function NewInstructor() {
-    const [data, setData] = useState([]);
+    const { 
+        dashboardData, 
+        activatingInstructorId, 
+        deactivatingInstructorId,
+        activateInstructor, 
+        deactivateInstructor 
+    } = useDashboardContext();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('/data/Instructor.json');
-                const jsonData = await response.json();
-                setData(jsonData.slice(0, 3));
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error('Failed to load membership data');
-            }
-        };
+    const [activeDialogOpen, setActiveDialogOpen] = useState(false);
+    const [deactiveDialogOpen, setDeactiveDialogOpen] = useState(false);
+    const [selectedInstructor, setSelectedInstructor] = useState<any>(null);
 
-        fetchData();
-    }, []);
+    // Get first 3 instructors
+    const data = dashboardData?.newInstructors?.slice(0, 3) || [];
+
+    // Confirmation handlers
+    const handleActiveClick = (instructor: any) => {
+        setSelectedInstructor(instructor);
+        setActiveDialogOpen(true);
+    };
+
+    const handleDeactiveClick = (instructor: any) => {
+        setSelectedInstructor(instructor);
+        setDeactiveDialogOpen(true);
+    };
+
+    const confirmActive = async () => {
+        if (selectedInstructor) {
+            await activateInstructor(selectedInstructor.id);
+            setActiveDialogOpen(false);
+            setSelectedInstructor(null);
+        }
+    };
+
+    const confirmDeactive = async () => {
+        if (selectedInstructor) {
+            await deactivateInstructor(selectedInstructor.id);
+            setDeactiveDialogOpen(false);
+            setSelectedInstructor(null);
+        }
+    };
+
+    const cancelAction = () => {
+        setActiveDialogOpen(false);
+        setDeactiveDialogOpen(false);
+        setSelectedInstructor(null);
+    };
 
     const columns = [
         {
@@ -41,16 +78,17 @@ export default function NewInstructor() {
             )
         },
         {
-            key: 'student',
+            key: 'users',
             label: 'Student',
             width: '20%',
-            render: (value: string[] | string) => {
-                let students = Array.isArray(value) ? value.join(', ') : value;
+            render: (value: any, row: any) => {
+                if (!row.users || row.users.length === 0) return <span>-</span>;
+                const studentNames = row.users.map((user: any) => user.name).join(', ');
                 // Truncate if too long
-                if (students && students.length > 30) {
-                    students = students.slice(0, 27) + '...';
+                if (studentNames.length > 30) {
+                    return <span className="truncate block">{studentNames.slice(0, 27) + '...'}</span>;
                 }
-                return <span className="truncate block">{students}</span>;
+                return <span className="truncate block">{studentNames}</span>;
             }
         },
         {
@@ -66,7 +104,7 @@ export default function NewInstructor() {
             label: 'Email',
             width: '20%',
             render: (value: string) => (
-                <span className="truncate block">{value}</span>
+                <span className="truncate block lowercase">{value}</span>
             )
         },
         {
@@ -74,11 +112,11 @@ export default function NewInstructor() {
             label: 'Status',
             width: '20%',
             render: (value: string) => (
-                <span className={`inline-flex items-center justify-center w-20 px-3 py-1 rounded text-xs font-medium border ${value.toLowerCase() === 'active'
+                <span className={`inline-flex items-center justify-center w-20 px-3 py-1 rounded text-xs font-medium border ${value?.toLowerCase() === 'active'
                     ? 'bg-green-900/10 text-green-400 border-green-700'
                     : 'bg-red-900/10 text-red-400 border-red-700'
                     }`}>
-                    {value.toLowerCase() === 'active' ? 'Active' : 'Deactivate'}
+                    {value?.toLowerCase() === 'active' ? 'Active' : 'Deactivate'}
                 </span>
             )
         },
@@ -96,14 +134,41 @@ export default function NewInstructor() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-32 p-2">
-                        <Button variant="ghost" className="w-full justify-start cursor-pointer">Active</Button>
-                        <Button variant="ghost" className="w-full justify-start text-red-500 cursor-pointer">Deactivate</Button>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start cursor-pointer"
+                            onClick={() => handleActiveClick(row)}
+                            disabled={activatingInstructorId === row.id || deactivatingInstructorId === row.id}
+                        >
+                            {activatingInstructorId === row.id ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    Activating...
+                                </>
+                            ) : (
+                                'Active'
+                            )}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start text-red-500 cursor-pointer"
+                            onClick={() => handleDeactiveClick(row)}
+                            disabled={activatingInstructorId === row.id || deactivatingInstructorId === row.id}
+                        >
+                            {deactivatingInstructorId === row.id ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    Deactivating...
+                                </>
+                            ) : (
+                                'Deactivate'
+                            )}
+                        </Button>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
         }
     ];
-
 
     return (
         <>
@@ -121,6 +186,59 @@ export default function NewInstructor() {
                 className="mt-4"
             />
 
+            {/* Active Confirmation Dialog */}
+            <Dialog open={activeDialogOpen} onOpenChange={setActiveDialogOpen}>
+                <DialogContent className="bg-[#1D1F2C] text-white border border-[#23293D]">
+                    <DialogHeader>
+                        <DialogTitle>Activate Instructor?</DialogTitle>
+                        <DialogDescription className="text-gray-300">
+                            Are you sure you want to activate {selectedInstructor?.name}?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={cancelAction} className="border-[#23293D] cursor-pointer text-black ">
+                            Cancel
+                        </Button>
+                        <Button onClick={confirmActive} disabled={activatingInstructorId === selectedInstructor?.id} className="bg-green-600 hover:bg-green-700 cursor-pointer">
+                            {activatingInstructorId === selectedInstructor?.id ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    Activating...
+                                </>
+                            ) : (
+                                'Activate'
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Deactive Confirmation Dialog */}
+            <Dialog open={deactiveDialogOpen} onOpenChange={setDeactiveDialogOpen}>
+                <DialogContent className="bg-[#1D1F2C] text-white border border-[#23293D]">
+                    <DialogHeader>
+                        <DialogTitle>Deactivate Instructor?</DialogTitle>
+                        <DialogDescription className="text-gray-300">
+                            Are you sure you want to deactivate {selectedInstructor?.name}?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={cancelAction} className="border-[#23293D] cursor-pointer text-black">
+                            Cancel
+                        </Button>
+                        <Button onClick={confirmDeactive} disabled={deactivatingInstructorId === selectedInstructor?.id} className="bg-orange-600 hover:bg-orange-700 cursor-pointer">
+                            {deactivatingInstructorId === selectedInstructor?.id ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    Deactivating...
+                                </>
+                            ) : (
+                                'Deactivate'
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }
