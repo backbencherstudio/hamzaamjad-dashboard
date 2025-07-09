@@ -5,8 +5,8 @@ import Image from 'next/image';
 import { useDashboardContext } from '@/hooks/useDashboard';
 
 export default function OverviewCard() {
-    const { dashboardData, loading, fetchDashboardData } = useDashboardContext();
-    const [filter, setFilter] = useState('Month');
+    const { dashboardData, loading, } = useDashboardContext();
+    // const [filter, setFilter] = useState('Month');
 
     const data = [
         {
@@ -23,18 +23,17 @@ export default function OverviewCard() {
         }
     ];
 
-    const handleFilterChange = (value: string) => {
-        setFilter(value);
-        // You can add logic here to refetch data based on filter
-        // fetchDashboardData(10); // or different limit based on filter
-    };
+    // const handleFilterChange = (value: string) => {
+    //     setFilter(value);
+
+    // };
 
     return (
         <>
             <div className="flex items-center justify-between">
                 <h1 className='text-2xl font-semibold mb-5 text-white'>Overview</h1>
                 {/* dropd down filter  month and 7 days and 15 days */}
-                <select
+                {/* <select
                     className="bg-[#181E34] text-white px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-transparent"
                     value={filter}
                     onChange={e => handleFilterChange(e.target.value)}
@@ -42,7 +41,7 @@ export default function OverviewCard() {
                     <option value="Month">Month</option>
                     <option value="7 days">7 days</option>
                     <option value="15 days">15 days</option>
-                </select>
+                </select> */}
             </div>
             {/* card */}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>

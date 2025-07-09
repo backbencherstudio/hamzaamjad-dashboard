@@ -32,7 +32,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Fetch user data from API
     const fetchUserData = async (userToken: string) => {
         try {
             const response = await meApi();
@@ -47,16 +46,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    // Check for existing token on mount and fetch user data
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
-        
+
         if (storedToken) {
             setToken(storedToken);
-            // Fetch fresh user data from API
+
             fetchUserData(storedToken).then((success) => {
                 if (!success) {
-                    // If fetching user data fails, clear token
                     localStorage.removeItem('token');
                     setToken(null);
                     setUser(null);
@@ -72,13 +69,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             setIsLoading(true);
             const response = await loginApi({ email, password });
-            
-            // Check if user is ADMIN
+
             if (response.user.role !== 'ADMIN') {
                 throw new Error('Access denied. Admin privileges required.');
             }
 
-            // Store only token in localStorage
             localStorage.setItem('token', response.token);
             setToken(response.token);
             setUser(response.user);

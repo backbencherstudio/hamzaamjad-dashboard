@@ -1,3 +1,4 @@
+"use client"
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { getAllMembership, membersActiveAndDeactive, membersDeactive } from '@/apis/membershipApis';
 import { toast } from 'react-toastify';
@@ -87,8 +88,8 @@ export const MembershipProvider = ({ children }: { children: ReactNode }) => {
       await membersActiveAndDeactive(id);
       toast.success('Member activated successfully');
       // Update local state - find member by id
-      setMemberships(prev => prev.map(member => 
-        member.id === id 
+      setMemberships(prev => prev.map(member =>
+        member.id === id
           ? { ...member, status: 'active' }
           : member
       ));
@@ -107,8 +108,8 @@ export const MembershipProvider = ({ children }: { children: ReactNode }) => {
       await membersDeactive(id);
       toast.success('Member deactivated successfully');
       // Update local state - find member by id
-      setMemberships(prev => prev.map(member => 
-        member.id === id 
+      setMemberships(prev => prev.map(member =>
+        member.id === id
           ? { ...member, status: 'deactive' }
           : member
       ));
