@@ -1,3 +1,4 @@
+'use client'
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getAllInstructorApi, addInstructorApi, deleteInstructorApi, activeInstructorApi, deactiveInstructorApi } from '@/apis/instructorApis';
 import { toast } from 'react-toastify';
@@ -86,7 +87,7 @@ export const InstructorProvider = ({ children }: { children: ReactNode }) => {
     try {
       await addInstructorApi(data);
       toast.success('Instructor added successfully');
-      await fetchInstructors(1, limit, search, type); // refresh first page
+      await fetchInstructors(1, limit, search, type); 
       setPage(1);
     } catch (err: any) {
       setError(err.message || 'Failed to add instructor');
@@ -120,8 +121,8 @@ export const InstructorProvider = ({ children }: { children: ReactNode }) => {
       await activeInstructorApi(id);
       toast.success('Instructor activated successfully');
       // Update local state
-      setInstructors(prev => prev.map(instructor => 
-        instructor._id === id 
+      setInstructors(prev => prev.map(instructor =>
+        instructor._id === id
           ? { ...instructor, status: 'active' }
           : instructor
       ));
@@ -140,8 +141,8 @@ export const InstructorProvider = ({ children }: { children: ReactNode }) => {
       await deactiveInstructorApi(id);
       toast.success('Instructor deactivated successfully');
       // Update local state
-      setInstructors(prev => prev.map(instructor => 
-        instructor._id === id 
+      setInstructors(prev => prev.map(instructor =>
+        instructor._id === id
           ? { ...instructor, status: 'deactive' }
           : instructor
       ));

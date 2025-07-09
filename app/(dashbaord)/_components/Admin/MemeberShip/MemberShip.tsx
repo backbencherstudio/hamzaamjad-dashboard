@@ -52,7 +52,6 @@ function MembershipPageContent() {
     // Debounced search term
     const debouncedSearchTerm = useDebounce(search, 300);
 
-    // Fetch data only once when component mounts
     useEffect(() => {
         if (!hasInitialized) {
             fetchMemberships(page, limit, search, status);
@@ -60,7 +59,6 @@ function MembershipPageContent() {
         }
     }, [fetchMemberships, page, limit, search, status, hasInitialized]);
 
-    // Fetch data when debounced search term changes
     useEffect(() => {
         if (hasInitialized) {
             setPage(1);
@@ -68,7 +66,6 @@ function MembershipPageContent() {
         }
     }, [debouncedSearchTerm, hasInitialized]);
 
-    // Direct search handler (no debouncing here, useDebounce handles it)
     const handleSearchChange = (value: string) => {
         setSearch(value);
     };
@@ -106,13 +103,6 @@ function MembershipPageContent() {
         setSelectedMember(null);
     };
 
-    // Helper function to check if member has active subscription
-    const hasActiveSubscription = (member: any) => {
-        if (member.subscription && member.subscription.length > 0) {
-            return member.subscription.some((sub: any) => sub.status === 'ACTIVE');
-        }
-        return false;
-    };
 
     // Helper function to get subscription status text
     const getSubscriptionStatusText = (member: any) => {
@@ -329,7 +319,7 @@ function MembershipPageContent() {
                 <h1 className='text-2xl font-semibold text-white'>All Membership</h1>
             </div>
             {/* Tabs and Search */}
-            <div className="flex flex-col gap-4 xl:flex-row justify-between items-center mb-4">
+            <div className="flex flex-col lg:flex-row lg:items-center sm:justify-between gap-4 mb-4">
                 {/* Tabs on the left */}
                 <nav className="flex flex-wrap gap-2 sm:gap-6 bg-[#181F2A] rounded-[10px] p-2 shadow-sm border-2 border-[#23293D]" style={{ boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.1)' }}>
                     {tabs.map((tab) => (
@@ -346,7 +336,7 @@ function MembershipPageContent() {
                     ))}
                 </nav>
                 {/* Search on the right */}
-                <div className="relative w-full sm:w-auto sm:max-w-md">
+                <div className="relative w-full lg:w-auto lg:max-w-md">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -357,7 +347,7 @@ function MembershipPageContent() {
                         placeholder="Search"
                         value={search}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        className="block w-full sm:w-80 pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-[#181F2A] text-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
+                        className="block w-full lg:w-80 pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-[#181F2A] text-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
                     />
                 </div>
             </div>

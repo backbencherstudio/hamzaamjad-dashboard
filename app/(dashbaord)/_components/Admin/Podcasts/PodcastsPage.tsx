@@ -6,7 +6,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/compon
 import { Button } from '@/components/ui/button'
 import { Loader2, MoreVertical } from 'lucide-react'
 import CustomReusableModal from '@/components/reusable/Dashboard/Modal/CustomReusableModal'
-
 import { usePodcasts } from '@/hooks/usePodcasts'
 import { useDebounce } from '@/hooks/useDebounce'
 import {
@@ -161,7 +160,6 @@ export default function PodcastsPage() {
             label: 'Day',
             width: '15%',
             render: (value: string) => {
-                // Format date as "5 May"
                 if (!value) return '-';
                 const d = new Date(value);
                 const day = d.getDate();
@@ -205,10 +203,10 @@ export default function PodcastsPage() {
 
     return (
         <>
-            <div className='mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between'>
+            <div className='mb-6 flex flex-col lg:flex-row sm:items-center sm:justify-between gap-4'>
                 <h1 className='text-2xl font-semibold text-white'>Podcasts</h1>
                 {/* Search on the right */}
-                <div className='flex flex-col lg:flex-row items-center gap-4'>
+                <div className='flex flex-col md:flex-row items-center gap-4'>
                     <button
                         className="bg-blue-600 cursor-pointer transition-all duration-300 text-sm hover:bg-blue-700 text-white font-semibold py-2 px-4  rounded-lg shadow ml-auto sm:ml-0 mt-4 sm:mt-0"
                         onClick={handleAddNew}

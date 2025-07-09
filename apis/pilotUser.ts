@@ -13,3 +13,28 @@ export const getPolotUserApi = async (page: number, limit: number, search?: stri
         throw new Error(error.response?.data?.message || 'Failed to fetch polot user');
     }
 }
+
+
+//  Pilot User active  
+export const pilotUserActive = async (id: string) => {
+    try {
+        const response = await axiosClient.patch(`/users/to-active-user/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching memberships:', error);
+        throw error;
+    }
+}
+
+
+// Pilot User deactive 
+export const pilotUserDeactive = async (id: string) => {
+    try {
+        const response = await axiosClient.patch(`/users/to-deactive-user/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching memberships:', error);
+        throw error;
+    }
+}
+
