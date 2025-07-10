@@ -9,10 +9,6 @@
 
 }
 
-.button-primary {
-    @apply bg-[#3762E4] hover:bg-[#3762E4]/80 cursor-pointer transition-all duration-300;
-}
-
 /* Font CSS Variables - Global Access */
 :root {
     /* Default font (Inter) */
