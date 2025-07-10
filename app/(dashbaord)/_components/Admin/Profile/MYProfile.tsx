@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useRef } from 'react'
 import { useForm } from "react-hook-form"
-import { Loader2 } from "lucide-react"
+import { Loader2, Edit2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,11 +10,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from '@/hooks/useAuth'
 import { updateUserApi } from '@/apis/authApis'
 import { toast } from 'react-toastify'
-import { LuImagePlus } from "react-icons/lu";
+import { LuImagePlus } from "react-icons/lu"
+import ChangeEmail from './ChangeEmail'
+
 // Types
 interface ProfileFormData {
     name: string
-    email: string
 }
 
 interface EditableInputProps {
@@ -50,7 +51,7 @@ const ProfileImageUpload = ({
                     <AvatarFallback>U</AvatarFallback>
                 </Avatar>
                 <div className="absolute bottom-0 right-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-[#1D1F2C]/80 transition-colors">
-                <LuImagePlus />
+                    <LuImagePlus />
                 </div>
             </div>
             <input
@@ -95,9 +96,7 @@ const EditableInput = ({
                 onClick={() => onEditClick(id)}
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
             >
-                <svg className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
+                <Edit2 className="h-4 w-4 text-gray-500 cursor-pointer" />
             </Button>
         </div>
         {errors[id] && (
@@ -111,6 +110,8 @@ export default function MyProfile() {
     const [editingField, setEditingField] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
+    const [hasChanges, setHasChanges] = useState(false)
 
     // Auth user
     const { user, refreshUser } = useAuth()
@@ -123,7 +124,6 @@ export default function MyProfile() {
     const profileForm = useForm<ProfileFormData>({
         defaultValues: {
             name: user?.name || '',
-            email: user?.email || '',
         },
     })
 
@@ -131,11 +131,21 @@ export default function MyProfile() {
         if (user) {
             profileForm.reset({
                 name: user.name || '',
-                email: user.email || '',
             })
             setProfileImage(user.image || "/api/placeholder/96/96")
+            setHasChanges(false)
         }
     }, [user])
+
+    // Check for changes
+    React.useEffect(() => {
+        const currentName = profileForm.watch('name')
+        const originalName = user?.name || ''
+        const nameChanged = currentName !== originalName
+        const imageChanged = !!compressedImageBlob
+
+        setHasChanges(nameChanged || imageChanged)
+    }, [profileForm.watch('name'), compressedImageBlob, user?.name])
 
     // Handlers
     const handleImageClick = () => {
@@ -187,6 +197,7 @@ export default function MyProfile() {
             }
             await refreshUser()
             setCompressedImageBlob(null)
+            setHasChanges(false)
             toast.success('Profile updated successfully!')
         } catch (err: any) {
             toast.error(err.message || 'Failed to update profile')
@@ -203,72 +214,85 @@ export default function MyProfile() {
                 value: 2,
                 message: "Name must be at least 2 characters"
             }
-        },
-        email: {
-            required: "Email is required",
-            pattern: {
-                value: /^\S+@\S+$/i,
-                message: "Please enter a valid email address"
-            }
         }
     }
 
     return (
-        <Card className="shadow-sm border-none">
-            <CardHeader className="bg-[#23293D] text-white rounded-t-lg p-5">
-                <CardTitle className="text-2xl">My Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 mt-[-25px] rounded-b-lg bg-[#1D1F2C] text-white">
-                {/* Image upload */}
-                <ProfileImageUpload
-                    profileImage={profileImage}
-                    onImageClick={handleImageClick}
-                    onImageChange={handleImageChange}
-                    fileInputRef={fileInputRef}
-                />
-                <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                    <EditableInput
-                        id="name"
-                        label="Name"
-                        placeholder="Enter your name"
-                        editingField={editingField}
-                        onEditClick={handleEditClick}
-                        onBlur={handleFieldBlur}
-                        register={profileForm.register}
-                        errors={profileForm.formState.errors}
-                        validation={profileValidation.name}
+        <>
+            <Card className="shadow-sm border-none">
+                <CardHeader className="bg-[#23293D] text-white rounded-t-lg p-5">
+                    <CardTitle className="text-2xl">My Profile</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 mt-[-25px] rounded-b-lg bg-[#1D1F2C] text-white">
+                    {/* Image upload */}
+                    <ProfileImageUpload
+                        profileImage={profileImage}
+                        onImageClick={handleImageClick}
+                        onImageChange={handleImageChange}
+                        fileInputRef={fileInputRef}
                     />
-                    {/* Read-only Email Field */}
-                    <div className="space-y-2">
-                        <Label className='text-white' htmlFor="email">Email</Label>
-                        <div className="relative">
-                            <Input
-                                id="email"
-                                type="email"
-                                value={user?.email || ''}
-                                disabled={true}
-                                className="text-white py-5 bg-[#161721] cursor-not-allowed opacity-60"
-                            />
-                            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
-                                Read Only
+                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+                        <EditableInput
+                            id="name"
+                            label="Name"
+                            placeholder="Enter your name"
+                            editingField={editingField}
+                            onEditClick={handleEditClick}
+                            onBlur={handleFieldBlur}
+                            register={profileForm.register}
+                            errors={profileForm.formState.errors}
+                            validation={profileValidation.name}
+                        />
+                        {/* Email Field with Edit Icon */}
+                        <div className="space-y-2">
+                            <Label className='text-white' htmlFor="email">Email</Label>
+                            <div className="relative">
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={user?.email || ''}
+                                    disabled={true}
+                                    className="text-white py-5 bg-[#161721] cursor-not-allowed opacity-60"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setIsEmailModalOpen(true)}
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
+                                >
+                                    <Edit2 className="h-4 w-4 text-gray-500 cursor-pointer" />
+                                </Button>
                             </div>
+                            <p className="text-sm text-gray-400">
+                                Click the edit icon to change your email address
+                            </p>
                         </div>
-                    </div>
-                    <Button
-                        type="submit"
-                        className="w-full cursor-pointer py-5 transition-all duration-300 bg-[#3762E4] hover:bg-[#3762E4]/80 text-white rounded-lg"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <span className="flex items-center justify-center gap-2">
-                                <Loader2 className="animate-spin h-5 w-5" /> Saving...
-                            </span>
-                        ) : (
-                            'Save Change'
-                        )}
-                    </Button>
-                </form>
-            </CardContent>
-        </Card>
+                        <Button
+                            type="submit"
+                            className={`w-full py-5 transition-all duration-300 rounded-lg ${hasChanges
+                                    ? 'bg-[#3762E4] hover:bg-[#3762E4]/80 text-white cursor-pointer'
+                                    : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                                }`}
+                            disabled={isLoading || !hasChanges}
+                        >
+                            {isLoading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <Loader2 className="animate-spin h-5 w-5" /> Saving...
+                                </span>
+                            ) : (
+                                hasChanges ? 'Save Changes' : 'No Changes to Save'
+                            )}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
+
+            {/* Email Change Modal */}
+            <ChangeEmail
+                isOpen={isEmailModalOpen}
+                onClose={() => setIsEmailModalOpen(false)}
+            />
+        </>
     )
 }

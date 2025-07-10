@@ -122,3 +122,27 @@ export const updateUserApi = async (data: any) => {
         throw new Error(error.response.data.message);
     }
 }
+
+
+
+
+// changes email api body te email
+export const sendChangeEmailOtpApi = async (data: any) => {
+    try {
+        const response = await axiosClient.post('/users/send-change-email-otp', data);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response.data.message);
+    }
+}
+
+
+// verify change email otp api body te email and otp
+export const verifyChangeEmailOtpApi = async (data: any) => {
+    try {
+        const response = await axiosClient.post('/users/verify-change-email', data);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response.data.message);
+    }
+}
