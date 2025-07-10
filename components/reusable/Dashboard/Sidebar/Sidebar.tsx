@@ -14,7 +14,7 @@ import MicIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/MicIcon';
 import BookIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/BookIcon';
 import FilesIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/FilesIcon';
 import PromoCodeIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/PromoCodeIcon';
-import LogoImage from '@/public/image/logo/logo.png'
+import LogoImage from '@/public/Image/logo/logo.png'
 
 interface SidebarProps {
     isOpen: boolean;
