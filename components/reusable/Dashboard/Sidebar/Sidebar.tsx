@@ -14,7 +14,7 @@ import MicIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/MicIcon';
 import BookIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/BookIcon';
 import FilesIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/FilesIcon';
 import PromoCodeIcon from '@/app/(dashbaord)/_components/Admin/Icon/Sidebar/PromoCodeIcon';
-import logo from '@/public/image/logo/logo.png'
+import LogoImage from '@/public/image/logo/logo.png'
 
 interface SidebarProps {
     isOpen: boolean;
@@ -51,7 +51,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
             <div className="py-5 px-3 flex justify-between items-center mt-2">
                 <div className='flex flex-col md:flex-row items-center gap-2'>
                     <div className='w-8 h-8'>
-                        <Image src={logo} alt="logo" width={200} height={200} className='w-full h-full object-contain' />
+                        <Image src={LogoImage} alt="logo" width={200} height={200} className='w-full h-full object-contain' />
                     </div>
                     <p className='text-white text-lg  uppercase'>Left seat lessons</p>
 
